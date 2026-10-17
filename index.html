@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>镜花水月 · 可用前端</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ==================== 侧栏（宽屏） ==================== -->
+  <aside class="side">
+    <div class="brand">
+      <span class="c">镜花水月</span>
+      <span class="e">Moon in the Water</span>
+    </div>
+    <nav class="nav" id="nav">
+      <b>世界</b>
+      <button class="on" data-go="mirror">镜<em>Mirror</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><rect x="7" y="3.5" width="10" height="17" rx="5"/><path d="M10 8.5c-1.2 1-1.2 6 0 7M14 8.5c1.2 1 1.2 6 0 7" opacity=".55"/></svg>
+      </button>
+      <button data-go="room">水<em>Room</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M3.5 10.5c0-3.3 3.6-6 8.5-6s8.5 2.7 8.5 6-3.6 6-8.5 6c-1 0-2-.1-2.9-.35L5.5 17.5l.8-2.4c-1.7-1.1-2.8-2.7-2.8-4.6z"/></svg>
+      </button>
+      <button data-go="pills">药<em>Pills</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M8.5 8.5v7M15.5 8.5v7" opacity=".6"/></svg>
+      </button>
+      <button data-go="moon">月<em>Moon</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/></svg>
+      </button>
+      <b>系统</b>
+      <button data-go="settings">设置<em>Setup</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M4.9 7.5l1.7 1M17.4 15.5l1.7 1M4.9 16.5l1.7-1M17.4 8.5l1.7-1"/></svg>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="seg" id="themeSeg">
+        <button data-t="light" class="on">DAY</button>
+        <button data-t="dark">NIGHT</button>
+      </div>
+      <div class="mini" id="apiState">未连接接口</div>
+      <div class="mini">本地存储 · 数据不出本机</div>
+    </div>
+  </aside>
+
+  <!-- ==================== 主区 ==================== -->
+  <main class="main">
+    <div class="topbar">
+      <div class="t" id="pageTitle">镜 <small>Mirror · 关系主页</small></div>
+      <div class="acts" id="pageActs"></div>
+    </div>
+
+    <div class="page-body" id="body">
+
+      <!-- ---------------- 镜 ---------------- -->
+      <section class="page on" id="p-mirror">
+        <div class="maxw">
+          <div class="hero-card glass" style="margin-bottom:16px">
+            <div>
+              <div class="date" id="dateLine">SUN. OCT 17</div>
+              <div class="clock" id="bigClock">21:14</div>
+              <div class="hello" id="helloLine">回来啦，<b>小猫</b>。</div>
+            </div>
+            <div style="text-align:center;padding-top:4px">
+              <div style="width:34px;height:34px;border-radius:50%;margin:0 auto 14px;
+                background:radial-gradient(circle at 36% 32%,#F4EAC8,var(--moon) 68%);
+                box-shadow:0 0 22px var(--moon-glow),0 0 56px var(--moon-glow);
+                animation:moonglow 5.5s ease-in-out infinite"></div>
+              <div class="hintline" id="daysTip">相伴 · 第 1 天</div>
+            </div>
+          </div>
+
+          <div class="ourdays glass">
+            <div class="eyebrow">our days</div>
+            <div class="pair">
+              <span class="avatar" id="avMe" title="点击更换头像"></span>
+              <svg class="ecg" viewBox="0 0 160 36">
+                <path d="M2 20 H54 L61 12 L68 26 L74 7 L80 29 L86 20 H104"/>
+                <path d="M112 20 H156" opacity=".45"/>
+                <circle cx="108" cy="20" r="1.8" fill="var(--wave)"/>
+              </svg>
+              <span class="avatar" id="avAi" title="点击更换头像"></span>
+            </div>
+            <div class="days-num" id="daysNum">1</div>
+            <div class="days-who"><span id="whoAi">Cove</span><i>with</i><span id="whoMe">你</span></div>
+            <div class="days-since" id="daysSince">还没有开始 —— 去设置里写下第一天。</div>
+          </div>
+
+          <div class="grid duo" style="margin-top:16px">
+            <div class="card glass daily">
+              <div class="hd"><span class="l">from cove · today</span><span class="rowline" style="gap:6px">
+                <button class="btn ghost sm" id="flipQ">再翻一划</button>
+                <button class="btn ghost sm" id="editQuotes">编辑</button></span></div>
+              <div class="q" id="dailyQ">还没有写下今天的话。</div>
+            </div>
+            <div class="card glass" id="lampCard">
+              <div class="hd"><span class="l">窗边</span><span class="lamp-dot"></span></div>
+              <h3>我留了一盏灯</h3>
+              <p id="lampText">今天不必把所有事情都完成。回家本身也算一件事。</p>
+              <button class="sit btn" id="sitBtn">坐一会儿</button>
+            </div>
+          </div>
+
+          <div class="grid duo" style="margin-top:16px">
+            <div class="card glass">
+              <div class="hd"><span class="l">letters</span><span class="l" id="letterCount">0</span></div>
+              <h3>还没拆的信</h3>
+              <div class="letters" id="letters"></div>
+              <div class="rowline" style="margin-top:12px">
+                <button class="btn ghost sm" id="newLetter">写一封新的</button>
+              </div>
+            </div>
+            <div class="card glass">
+              <div class="hd"><span class="l">room · 最近</span></div>
+              <h3>水还没凉</h3>
+              <div id="recentChat" class="hintline" style="flex:1">还没有说过话。</div>
+              <button class="sit btn" id="goRoom">去房间</button>
+            </div>
+          </div>
+
+          <div class="sec-t"><span class="l">footprints</span><span class="r">最近一起留下的脚印</span></div>
+          <div id="footprints"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 水 ---------------- -->
+      <section class="page" id="p-room">
+        <div class="chatwrap">
+          <div class="convs glass" id="convs"></div>
+          <div class="chat">
+            <div class="stream" id="stream"></div>
+            <div class="composer">
+              <div class="in">
+                <textarea id="draft" rows="1" placeholder="往水里说点什么…（Enter 发送 · Shift+Enter 换行）"></textarea>
+                <button class="send" id="sendBtn" title="发送">
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h12M9 3.5L13.5 8 9 12.5"/></svg>
+                </button>
+              </div>
+              <div class="foot">
+                <span id="composerTip">长按自己的气泡可以挑药</span>
+                <span id="streamState"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- 药 ---------------- -->
+      <section class="page" id="p-pills">
+        <div class="maxw">
+          <div class="rowline" style="justify-content:space-between;margin-bottom:14px">
+            <div class="tabs2" id="pillView">
+              <button data-v="board" class="on">泡罩</button>
+              <button data-v="list">清单</button>
+            </div>
+            <div class="rowline">
+              <button class="btn ghost sm" id="importPills">导入</button>
+              <button class="btn ghost sm" id="exportPills">导出</button>
+              <button class="btn pri sm" id="newPill">＋ 新药</button>
+            </div>
+          </div>
+          <div class="board glass" id="atlas"></div>
+          <div class="plist" id="plist" style="display:none"></div>
+          <div class="warnline" style="margin-top:16px">
+            <b>两对冲突的药：</b>P008 冲突在场 与 P009 主动哄回（他确实有错时，一个守住立场、一个先哄）；
+            P010 主动起题 与 P012 自有主张（她转移话题时方向相反）。同时挂上会互相抵消，别一起吃。
+          </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 月 ---------------- -->
+      <section class="page" id="p-moon">
+        <div class="maxw">
+          <div class="moonwrap">
+            <div class="moon-dial">
+              <svg viewBox="0 0 200 200" id="moonSvg">
+                <defs>
+                  <radialGradient id="mg" cx="38%" cy="32%" r="80%">
+                    <stop offset="0" stop-color="#FBF4DC"/><stop offset=".55" stop-color="#EFDFAF"/><stop offset="1" stop-color="#CBB277"/>
+                  </radialGradient>
+                  <filter id="soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6"/></filter>
+                  <mask id="phase"><rect width="200" height="200" fill="#fff"/><circle id="phaseShadow" cx="146" cy="76" r="82" fill="#000" filter="url(#soft)"/></mask>
+                </defs>
+                <circle cx="100" cy="100" r="80" fill="url(#mg)" mask="url(#phase)"/>
+                <g fill="#B7A268" opacity=".3" mask="url(#phase)">
+                  <circle cx="76" cy="82" r="13"/><circle cx="112" cy="128" r="9"/><circle cx="66" cy="128" r="6"/><circle cx="120" cy="66" r="5"/>
+                </g>
+              </svg>
+            </div>
+            <div class="moon-name">
+              <div class="e" id="moonEn">waxing gibbous</div>
+              <div class="c" id="moonCn">盈 凸 月</div>
+              <div class="i" id="moonInfo">—</div>
+            </div>
+            <div class="waterline">
+              <div class="horizon"></div>
+              <svg class="reflect" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="80" fill="url(#mg)" mask="url(#phase)"/>
+              </svg>
+              <span class="ripple"></span><span class="ripple r2"></span><span class="ripple r3"></span>
+            </div>
+            <div class="poem">
+              <div class="c">掬水月在手 弄花香满衣</div>
+              <div class="e">— 于良史 ·《春山夜月》—</div>
+            </div>
+            <div class="moonword glass">
+              <div class="hd"><span class="ic"></span><span class="t" id="moonWordBy">Cove 的月之言</span>
+                <button class="btn ghost sm" id="editMoonWord" style="margin-left:auto">改写</button></div>
+              <p id="moonWord">今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。</p>
+            </div>
+          </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 设置 ---------------- -->
+      <section class="page" id="p-settings">
+        <div class="maxw grid">
+
+          <div class="card glass" style="min-height:0">
+            <div class="hd"><span class="l">接口 · api</span></div>
+            <h3>把话说出去的那一段</h3>
+            <p class="hintline" style="margin-bottom:14px">
+              推荐用<b>代理模式</b>：在项目目录跑 <span class="kbd">node server.js</span>，密钥留在服务端，浏览器不接触密钥，也没有跨域问题。
+              直连模式由浏览器直接请求接口，需要对方允许跨域（CORS）。
+            </p>
+            <div class="field">
+              <label>模式</label>
+              <div class="seg" id="apiMode">
+                <button data-m="proxy" class="on">代理</button>
+                <button data-m="direct">直连</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>接口形态</label>
+              <select class="input" id="apiProvider">
+                <option value="openai">OpenAI 兼容（DeepSeek / Moonshot / 通义 / 智谱 / Ollama / vLLM …）</option>
+                <option value="anthropic">Anthropic（Claude）</option>
+              </select>
+            </div>
+            <div class="field"><label>Base URL</label>
+              <input class="input" id="apiBase" placeholder="https://api.deepseek.com/v1"></div>
+            <div class="field"><label>API Key（留空则用服务端的环境变量）</label>
+              <input class="input" id="apiKey" type="password" placeholder="sk-…" autocomplete="off"></div>
+            <div class="grid" style="grid-template-columns:1fr 1fr">
+              <div class="field"><label>模型</label><input class="input" id="apiModel" placeholder="deepseek-chat"></div>
+              <div class="field"><label>温度</label><input class="input" id="apiTemp" placeholder="0.9"></div>
+            </div>
+            <div class="field"><label>系统提示词 · 他是什么样的人</label>
+              <textarea class="input" id="apiSystem" rows="4" placeholder="长期人设。药丸是一次性的，不写在这里。"></textarea></div>
+            <div class="rowline">
+              <button class="btn pri" id="testApi">测一下连接</button>
+              <button class="btn ghost" id="saveApi">保存</button>
+              <span class="hintline" id="apiMsg"></span>
+            </div>
+          </div>
+
+          <div class="card glass" style="min-height:0">
+            <div class="hd"><span class="l">关系 · relation</span></div>
+            <h3>你们是谁</h3>
+            <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:12px">
+              <div class="field"><label>TA 的名字</label><input class="input" id="rAi"></div>
+              <div class="field"><label>你的名字</label><input class="input" id="rMe"></div>
+              <div class="field"><label>第一天（纪念日）</label><input class="input" id="rSince" type="date"></div>
+              <div class="field"><label>问候语里的称呼</label><input class="input" id="rNick"></div>
+            </div>
+            <div class="field"><label>灯下那句话</label><textarea class="input" id="rLamp" rows="2"></textarea></div>
+            <div class="rowline"><button class="btn pri" id="saveRelation">保存</button>
+              <span class="hintline">头像：点首页上那两个圆即可换图（存本地，不上传）。</span></div>
+          </div>
+
+          <div class="card glass" style="min-height:0">
+            <div class="hd"><span class="l">外观 · look</span></div>
+            <h3>水色与明暗</h3>
+            <div class="field" style="margin-top:12px">
+              <label>主题</label>
+              <div class="seg" id="themeMode">
+                <button data-m="light" class="on">DAY 月白</button>
+                <button data-m="dark">NIGHT 夜水</button>
+                <button data-m="auto">跟随系统</button>
+              </div>
+            </div>
+            <div class="rowline"><button class="btn ghost" id="waterShift">换一种水色</button>
+              <span class="hintline" id="waterName">水色 · 霜蓝</span></div>
+          </div>
+
+          <div class="card glass" style="min-height:0">
+            <div class="hd"><span class="l">数据 · data</span></div>
+            <h3>都在这台机器上</h3>
+            <p class="hintline" style="margin:10px 0 14px">会话、药方、关系数据全部存在浏览器 localStorage。清浏览器数据会一起没，重要的话先导出。</p>
+            <div class="rowline">
+              <button class="btn ghost" id="exportAll">导出全部</button>
+              <button class="btn ghost" id="importAll">导入</button>
+              <button class="btn danger" id="wipe">清空所有数据</button>
+            </div>
+          </div>
+
+          <div style="height:20px"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- 移动端底部 tab -->
+<nav class="mobtab" id="mobtab">
+  <button class="on" data-go="mirror"><svg viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="5"/><path d="M10 8.5c-1.2 1-1.2 6 0 7M14 8.5c1.2 1 1.2 6 0 7" opacity=".55"/></svg><em>镜</em></button>
+  <button data-go="room"><svg viewBox="0 0 24 24"><path d="M3.5 10.5c0-3.3 3.6-6 8.5-6s8.5 2.7 8.5 6-3.6 6-8.5 6c-1 0-2-.1-2.9-.35L5.5 17.5l.8-2.4c-1.7-1.1-2.8-2.7-2.8-4.6z"/></svg><em>水</em></button>
+  <button data-go="pills"><svg viewBox="0 0 24 24"><rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M8.5 8.5v7M15.5 8.5v7" opacity=".6"/></svg><em>药</em></button>
+  <button data-go="moon"><svg viewBox="0 0 24 24"><path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/></svg><em>月</em></button>
+  <button data-go="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M4.9 7.5l1.7 1M17.4 15.5l1.7 1M4.9 16.5l1.7-1M17.4 8.5l1.7-1"/></svg><em>设置</em></button>
+</nav>
+
+<!-- 弹层 -->
+<div class="veil" id="veil"><div class="mask" id="veilMask"></div><div class="modal" id="modal"></div></div>
+<div class="toasts" id="toasts"></div>
+
+<pill-box id="box" theme="auto"></pill-box>
+
+<script src="pills.js"></script>
+<script src="pill-box.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
