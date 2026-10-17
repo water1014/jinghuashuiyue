@@ -747,3 +747,9 @@ html[data-theme="dark"] .phcard{background:linear-gradient(170deg,rgba(52,66,96,
 .calp .nt{font-size:10.5px;line-height:1.65;color:var(--ink-2);margin-top:7px;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
 .calp .tm{font-size:8.5px;letter-spacing:.14em;color:var(--ink-4);margin-top:2px}
+
+/* 数字用等高字形：时钟、天数、日期不再显示成 i8 / OI:45 */
+.hero-card .clock,.days-num,.dayno b,.cal-m b,.pomo-t .serif,.lb-meta,.calp .tm{
+  font-variant-numeric:lining-nums;
+  font-feature-settings:"lnum" 1,"tnum" 1;
+}
