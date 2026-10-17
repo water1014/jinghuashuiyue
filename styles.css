@@ -70,7 +70,7 @@ html[data-theme="dark"] body{
 .glass-deep{background:linear-gradient(162deg,var(--glass-deep),var(--glass))}
 
 /* ---------------- 骨架 ---------------- */
-.app{display:grid;grid-template-columns:232px 1fr;height:100vh;gap:0}
+.app{position:relative;z-index:1;display:grid;grid-template-columns:232px 1fr;grid-template-rows:minmax(0,1fr);height:100vh;gap:0}
 .side{
   padding:22px 14px;display:flex;flex-direction:column;gap:6px;position:relative;z-index:5;
   background:linear-gradient(170deg,var(--glass-2),transparent 70%);
@@ -94,15 +94,15 @@ html[data-theme="dark"] body{
 .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:12px}
 .side-foot .mini{font-size:10px;letter-spacing:.14em;color:var(--ink-4);text-align:center}
 
-.main{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:16px 26px 12px;flex:0 0 auto;z-index:4}
 .topbar .t{font-family:var(--serif);font-size:22px;letter-spacing:.04em}
 .topbar .t small{display:block;font-family:var(--sans);font-size:10px;letter-spacing:.22em;color:var(--ink-3);margin-top:2px}
 .topbar .acts{display:flex;gap:8px;align-items:center}
-.page-body{flex:1;overflow-y:auto;padding:0 26px 26px;min-height:0}
-.page-body::-webkit-scrollbar{width:6px}
-.page{display:none}
+.page-body{flex:1;position:relative;min-height:0}
+.page{position:absolute;inset:0;overflow-y:auto;padding:0 26px 26px;display:none}
+.page::-webkit-scrollbar{width:6px}
 .page.on{display:block;animation:fade .4s ease}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .grid{display:grid;gap:16px}
@@ -198,7 +198,10 @@ select.input{appearance:none;cursor:pointer}
 .fp .dot{width:5px;height:5px;border-radius:50%;background:var(--wave);flex:0 0 auto}
 .fp .x{font-size:12.5px;color:var(--ink-2)}
 .daily .q{font-family:var(--serif);font-size:21px;line-height:1.75;margin:10px 0 4px}
-.empty{padding:22px;text-align:center;font-size:12px;color:var(--ink-3);line-height:1.9}
+.empty{position:relative;padding:30px 20px;text-align:center;font-size:12px;color:var(--ink-3);line-height:2}
+.empty::before{content:"";display:block;width:30px;height:30px;margin:0 auto 12px;border-radius:50%;
+  background:radial-gradient(circle at 38% 34%, rgba(255,255,255,.8), var(--moon-glow) 64%, transparent 72%);
+  opacity:.85;box-shadow:0 0 16px var(--moon-glow)}
 
 /* ---------------- 水 · 聊天 ---------------- */
 .chatwrap{display:grid;grid-template-columns:212px 1fr;gap:16px;height:100%;min-height:0}
@@ -369,11 +372,12 @@ html[data-theme="dark"] .paper{background:linear-gradient(170deg,rgba(40,52,82,.
 /* ---------------- 移动端 ---------------- */
 .mobtab{display:none}
 @media (max-width:900px){
-  .app{grid-template-columns:1fr}
+  .app{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
+  .side{display:none}
   .side{display:none}
   .chatwrap{grid-template-columns:1fr}
   .convs{display:none}
-  .page-body{padding:0 16px 96px}
+  .page{padding:0 16px 96px}
   .topbar{padding:14px 16px 10px}
   .duo{grid-template-columns:1fr}
   .mobtab{
@@ -497,7 +501,7 @@ html[data-theme="dark"]{
 .day .ops button:hover{color:var(--wave);background:var(--glass)}
 
 /* 息 · 呼吸 */
-.breath{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;align-items:center;
+.breath{position:relative;min-height:100%;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:26px;padding:20px;transition:background 2.4s ease;border-radius:28px}
 .breath.dim{background:radial-gradient(60% 50% at 50% 46%, rgba(20,28,46,.5), rgba(6,9,18,.9))}
 .breath.dim .br-tip,.breath.dim .br-word span{color:var(--ink-2)}
@@ -512,9 +516,141 @@ html[data-theme="dark"]{
 .br-tip{max-width:420px;text-align:center;z-index:2;line-height:2}
 
 /* 白 · 留白 */
-.blank{position:relative;min-height:calc(100vh - 220px);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:28px}
+.blank{position:relative;min-height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:28px}
 .blank-water{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
 .blank-word{position:relative;font-size:19px;letter-spacing:.3em;color:var(--ink-3);opacity:.7}
 
 /* 存 · 存档 */
 .ar-stat span{display:inline-block;margin-right:18px}
+
+/* ==========================================================================
+   镜花水月 · 氛围与质感（水光、月光、湿玻璃、倒影）
+   ========================================================================== */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.amb-moon{position:absolute;right:7%;top:5%;width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle at 40% 38%, rgba(255,255,255,.85), var(--moon) 58%, transparent 70%);
+  filter:blur(8px);opacity:.42;animation:mdrift 26s ease-in-out infinite}
+@keyframes mdrift{0%,100%{transform:translateY(0) scale(1);opacity:.34}50%{transform:translateY(-14px) scale(1.06);opacity:.5}}
+.amb-glow{position:absolute;border-radius:50%;filter:blur(70px);opacity:.32}
+.amb-glow.g1{width:540px;height:540px;left:-10%;top:8%;
+  background:radial-gradient(circle,var(--moon-glow),transparent 66%);animation:g1 36s ease-in-out infinite}
+.amb-glow.g2{width:480px;height:480px;right:-8%;bottom:2%;
+  background:radial-gradient(circle,var(--ripple),transparent 66%);animation:g2 44s ease-in-out infinite}
+.amb-glow.g3{width:400px;height:400px;left:32%;bottom:-14%;
+  background:radial-gradient(circle,rgba(159,176,204,.20),transparent 66%);animation:g3 52s ease-in-out infinite}
+@keyframes g1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes g2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-36px)}}
+@keyframes g3{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-28px)}}
+.amb-waves{position:absolute;left:0;right:0;bottom:-4%;width:100%;height:42%;opacity:.3}
+.amb-waves .aw{fill:none;stroke:var(--wave);stroke-width:1}
+.amb-noise{position:absolute;inset:0;width:100%;height:100%;opacity:.045;mix-blend-mode:overlay}
+.amb-vign{position:absolute;inset:0;
+  background:radial-gradient(125% 95% at 50% 40%, transparent 52%, rgba(10,16,28,.26))}
+html[data-theme="dark"] .amb-vign{background:radial-gradient(125% 95% at 50% 40%, transparent 48%, rgba(2,4,10,.55))}
+
+/* 题头：大字 + 一道水线 + 月牙 */
+.topbar{position:relative;align-items:flex-end}
+.tb-l{position:relative;flex:1;min-width:0}
+.topbar .t{font-family:var(--serif);font-size:27px;letter-spacing:.06em;line-height:1.1}
+.topbar .t small{font-family:var(--sans);font-size:9.5px;letter-spacing:.28em;color:var(--ink-3);margin-top:5px;text-transform:uppercase}
+.tb-line{position:absolute;left:0;bottom:-6px;width:min(320px,52%);height:1px;
+  background:linear-gradient(90deg,var(--wave),rgba(124,144,172,.15) 62%,transparent);opacity:.6}
+.tb-moon{width:24px;height:24px;border-radius:50%;flex:0 0 auto;margin-right:18px;
+  background:radial-gradient(circle at 38% 34%,#F6EFD8,var(--moon) 72%);
+  box-shadow:0 0 18px var(--moon-glow),0 0 40px var(--moon-glow);opacity:.9;
+  animation:moonglow 6s ease-in-out infinite}
+@keyframes moonglow{0%,100%{box-shadow:0 0 14px var(--moon-glow),0 0 30px var(--moon-glow)}
+  50%{box-shadow:0 0 22px var(--moon-glow),0 0 52px var(--moon-glow)}}
+
+/* 湿玻璃：更厚一点的水感 */
+.glass{
+  background:linear-gradient(158deg, rgba(255,255,255,.56), rgba(255,255,255,.28) 58%, rgba(255,255,255,.40));
+  box-shadow:var(--sh),
+    inset 0 1px 0 rgba(255,255,255,.86),
+    inset 0 -1px 0 rgba(255,255,255,.30),
+    inset 0 0 46px rgba(255,255,255,.10);
+}
+html[data-theme="dark"] .glass{
+  background:linear-gradient(158deg, rgba(48,62,92,.48), rgba(24,33,54,.30) 58%, rgba(40,52,80,.36));
+  box-shadow:var(--sh),
+    inset 0 1px 0 rgba(255,255,255,.13),
+    inset 0 -1px 0 rgba(255,255,255,.05),
+    inset 0 0 46px rgba(160,190,235,.05);
+}
+.glass::before{top:1px;left:10%;width:60%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent)}
+/* 卡片表面的一层水纹 */
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  opacity:.62;mix-blend-mode:soft-light;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='64'%3E%3Cpath d='M0 32 C 34 18, 66 46, 100 32 S 166 18, 200 32' fill='none' stroke='%238FA6CC' stroke-width='.8' opacity='.55'/%3E%3Cpath d='M0 46 C 34 32, 66 60, 100 46 S 166 32, 200 46' fill='none' stroke='%238FA6CC' stroke-width='.6' opacity='.35'/%3E%3C/svg%3E");
+  background-size:200px 64px;
+}
+.card{transition:transform .35s cubic-bezier(.22,.9,.24,1),box-shadow .35s}
+.card:hover{transform:translateY(-2px);box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.9),0 0 34px var(--ripple)}
+.card h3{font-family:var(--serif);font-size:20px;letter-spacing:.06em;margin:12px 0 8px}
+
+/* 首页：时钟与天数的倒影 + 心跳流过 */
+.hero-card{position:relative;overflow:hidden}
+.hero-card .clock{
+  -webkit-box-reflect:below -16px linear-gradient(transparent 58%, rgba(255,255,255,.30));
+  text-shadow:0 1px 0 rgba(255,255,255,.45);
+}
+.ourdays{position:relative;overflow:hidden}
+.ourdays .days-num{
+  -webkit-box-reflect:below -10px linear-gradient(transparent 66%, rgba(255,255,255,.26));
+  text-shadow:0 1px 0 rgba(255,255,255,.4);
+}
+.ecg .pulse{stroke:var(--moon);stroke-width:1.7;stroke-dasharray:5 260;
+  animation:ecgpulse 5.4s linear infinite}
+@keyframes ecgpulse{0%{stroke-dashoffset:130}60%{stroke-dashoffset:-130}100%{stroke-dashoffset:-130}}
+.daily .q{
+  -webkit-box-reflect:below -12px linear-gradient(transparent 72%, rgba(255,255,255,.14));
+}
+
+/* 更多 · 一页看全 */
+.more-hero{position:relative;display:flex;align-items:center;gap:16px;padding:14px 4px 6px}
+.mh-moon{width:46px;height:46px;border-radius:50%;flex:0 0 auto;position:relative;
+  background:radial-gradient(circle at 38% 34%,#F6EFD8,var(--moon) 70%);
+  box-shadow:0 0 24px var(--moon-glow),0 0 56px var(--moon-glow);animation:moonglow 6.5s ease-in-out infinite}
+.mh-moon::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1px solid var(--line);opacity:.7}
+.mh-t{flex:1;min-width:0}
+.mh-t b{display:block;font-size:26px;font-weight:400;letter-spacing:.1em}
+.mh-t i{display:block;font-style:normal;font-size:9.5px;letter-spacing:.3em;color:var(--ink-3);margin-top:5px;text-transform:uppercase}
+.mh-line{flex:0 0 60px;height:1px;background:linear-gradient(90deg,var(--wave),transparent);opacity:.6}
+.mgroup{margin-bottom:26px}
+.mgroup>h4{font-size:9.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:400;margin:0 4px 12px;display:flex;align-items:center;gap:12px}
+.mgroup>h4::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:14px}
+.mcard{position:relative;padding:16px 16px 14px;border-radius:20px;cursor:pointer;text-align:left;
+  background:linear-gradient(158deg,var(--glass-deep),var(--glass));
+  backdrop-filter:blur(20px);border:1px solid var(--line);box-shadow:var(--sh-sm),var(--in-hi);
+  transition:transform .3s,box-shadow .3s;overflow:hidden;font-family:var(--sans);color:inherit}
+.mcard:hover{transform:translateY(-3px);box-shadow:var(--sh),0 0 30px var(--ripple)}
+.mcard .ic{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;margin-bottom:10px;
+  background:var(--glass-2);border:1px solid var(--line-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.mcard .ic svg{width:17px;height:17px;stroke:var(--wave);fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.mcard .n{font-family:var(--serif);font-size:18px;letter-spacing:.08em}
+.mcard .e{font-size:8.5px;letter-spacing:.28em;color:var(--ink-4);text-transform:uppercase;margin-top:2px}
+.mcard .s{font-size:11px;color:var(--ink-2);margin-top:8px;line-height:1.7;min-height:18px}
+.mcard .go{position:absolute;right:14px;top:14px;font-size:14px;color:var(--ink-4);transition:transform .3s,color .3s}
+.mcard:hover .go{transform:translateX(3px);color:var(--wave)}
+
+@media (max-width:900px){
+  .mgrid{grid-template-columns:1fr 1fr}
+  .more-hero{padding-top:18px}
+}
+
+/* 大卡水印月 */
+.wm-moon{position:absolute;right:7%;top:14%;width:96px;height:96px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 40% 36%, rgba(255,255,255,.65), var(--moon-glow) 60%, transparent 72%);
+  opacity:.55;filter:blur(1px)}
+html[data-theme="dark"] .wm-moon{opacity:.4}
+/* 聊天空态 */
+.empty.big{padding:0;text-align:left;display:flex;align-items:center;gap:22px;max-width:520px;margin:8vh auto 0}
+.empty.big::before{margin:0;width:64px;height:64px;flex:0 0 auto;
+  box-shadow:0 0 30px var(--moon-glow)}
+.empty.big .t1{font-family:var(--serif);font-size:24px;letter-spacing:.1em;color:var(--ink);margin-bottom:8px}
+.empty.big .t2{font-size:12.5px;line-height:2;color:var(--ink-3)}
+.empty.big .t2 b{font-weight:400;color:var(--ink-2)}
