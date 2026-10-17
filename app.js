@@ -707,7 +707,9 @@
       return;
     }
     if (!c.messages.length) {
-      st.innerHTML = '<div class="empty">水面是平的。<br>说第一句吧。</div>';
+      st.innerHTML = '<div class="empty big"><div class="b"><div class="t1">水面是平的</div>' +
+        '<div class="t2">说第一句吧。<b>长按自己的气泡可以挑药</b>，或者点输入框旁边那颗小药丸，<br>' +
+        '先把这一剂备好 —— 它只管下一句，说完就沉下去。</div></div></div>';
     }
     c.messages.forEach(function (m) { st.appendChild(msgNode(m, c)); });
     st.scrollTop = st.scrollHeight;
@@ -1865,6 +1867,98 @@
     }).join('');
   }
 
+  /* =========================== 更多 · 一页看全 =========================== */
+  var ICON = {
+    cycle: '<path d="M3 15c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0"/><path d="M3 9c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0" opacity=".5"/>',
+    pomo: '<circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 1.8M9 3h6"/>',
+    today: '<rect x="4" y="4.5" width="16" height="16" rx="4"/><path d="M8 10h8M8 14h5"/>',
+    wish: '<path d="M12 20s-7-4.4-7-9a4 4 0 017-2.6A4 4 0 0119 11c0 4.6-7 9-7 9z"/>',
+    coupon: '<path d="M4 8.5h16v3a2 2 0 000 4v3H4v-3a2 2 0 000-4z"/><path d="M12 8.5v9" stroke-dasharray="2 2"/>',
+    diary: '<path d="M6 4.5h12v15l-6-3-6 3z"/><path d="M9.5 9h5M9.5 12.5h3" opacity=".55"/>',
+    breath: '<circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9" opacity=".4"/>',
+    blank: '<path d="M4 8.5c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0M4 15c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0" opacity=".7"/>',
+    words: '<path d="M8 5.5h8M8 10h8M8 14.5h5"/>',
+    archive: '<path d="M4.5 7.5h15v12h-15z"/><path d="M3.5 4.5h17v3h-17zM10 12h4"/>',
+    settings: '<circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M4.9 7.5l1.7 1M17.4 15.5l1.7 1M4.9 16.5l1.7-1M17.4 8.5l1.7-1"/>',
+    mirror: '<rect x="7" y="3.5" width="10" height="17" rx="5"/><path d="M10 8.5c-1.2 1-1.2 6 0 7M14 8.5c1.2 1 1.2 6 0 7" opacity=".55"/>',
+    room: '<path d="M3.5 10.5c0-3.3 3.6-6 8.5-6s8.5 2.7 8.5 6-3.6 6-8.5 6c-1 0-2-.1-2.9-.35L5.5 17.5l.8-2.4c-1.7-1.1-2.8-2.7-2.8-4.6z"/>',
+    pills: '<rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M8.5 8.5v7M15.5 8.5v7" opacity=".6"/>',
+    moon: '<path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/>'
+  };
+  function moreSummary(k) {
+    var k1 = todayKey();
+    if (k === 'cycle') {
+      var ci = cycleInfo();
+      return !ci ? '还没记过开始的日子' : (ci.inPeriod ? '这次第 ' + ci.dayIndex + ' 天' :
+        (ci.overdue ? '晚了 ' + Math.abs(ci.left) + ' 天' : '还有 ' + ci.left + ' 天'));
+    }
+    if (k === 'pomo') {
+      var r = S.pomo.log[k1] || { seg: 0, min: 0 };
+      return '今天坐了 ' + r.seg + ' 段 · ' + r.min + ' 分钟';
+    }
+    if (k === 'today') {
+      var l = S.todos[k1] || [];
+      return l.length ? (l.length + ' 件 · 划掉 ' + l.filter(function (t) { return t.done; }).length) : '今天这张表是空的';
+    }
+    if (k === 'wish') {
+      var o = S.wishes.filter(function (w) { return !w.done; }).length;
+      return o ? (o + ' 件还没做') : '暂时没有想做的事';
+    }
+    if (k === 'coupon') return '包里 ' + S.coupons.length + ' 张';
+    if (k === 'diary') return (S.diary[k1] && S.diary[k1].text) ? '今天写了' : '今天还没写';
+    if (k === 'breath') return '三分钟，只剩一个圆';
+    if (k === 'blank') return '什么都不用做';
+    if (k === 'words') return S.quotes.length + ' 句，每天换一句';
+    if (k === 'archive') return '一个按钮，存两份';
+    if (k === 'settings') return '接口：' + (S.settings.mode === 'proxy' ? '本地代理' : '直连');
+    if (k === 'mirror') return '第 ' + (daysTogether() || 1) + ' 天';
+    if (k === 'room') {
+      var n = 0; S.convs.forEach(function (c) { n += (c.messages || []).length; });
+      return S.convs.length + ' 间 · 说过 ' + n + ' 句';
+    }
+    if (k === 'pills') return S.pills.length + ' 颗，一次性的';
+    if (k === 'moon') return '今晚 ' + (moonOf(new Date()).cn || '');
+    return '';
+  }
+  var MORE_GROUPS = [
+    { g: '日用', ks: ['cycle', 'pomo', 'today', 'wish', 'coupon'] },
+    { g: '夜里', ks: ['diary', 'breath', 'blank'] },
+    { g: '世界', ks: ['mirror', 'room', 'pills', 'moon'] },
+    { g: '系统', ks: ['words', 'archive', 'settings'] }
+  ];
+  var MORE_NAME = {
+    cycle: ['潮', 'Tide'], pomo: ['钟', 'Focus'], today: ['表', 'Today'], wish: ['愿', 'Wishes'],
+    coupon: ['券', 'Coupons'], diary: ['记', 'Diary'], breath: ['息', 'Breath'], blank: ['白', 'Still'],
+    words: ['句', 'Words'], archive: ['存', 'Archive'], settings: ['设置', 'Setup'],
+    mirror: ['镜', 'Mirror'], room: ['水', 'Room'], pills: ['药', 'Pills'], moon: ['月', 'Moon']
+  };
+  function renderMore() {
+    var host = $('#moreList');
+    if (!host) return;
+    host.innerHTML = '';
+    MORE_GROUPS.forEach(function (grp) {
+      var sec = document.createElement('div');
+      sec.className = 'mgroup';
+      sec.innerHTML = '<h4>' + grp.g + '</h4>';
+      var grid = document.createElement('div');
+      grid.className = 'mgrid';
+      grp.ks.forEach(function (k) {
+        var nm = MORE_NAME[k] || [k, k];
+        var c = document.createElement('button');
+        c.className = 'mcard';
+        c.innerHTML = '<span class="go">›</span>' +
+          '<span class="ic"><svg viewBox="0 0 24 24">' + (ICON[k] || '') + '</svg></span>' +
+          '<div class="n">' + esc(nm[0]) + '</div>' +
+          '<div class="e">' + esc(nm[1]) + '</div>' +
+          '<div class="s">' + esc(moreSummary(k)) + '</div>';
+        c.onclick = function () { go(k); };
+        grid.appendChild(c);
+      });
+      sec.appendChild(grid);
+      host.appendChild(sec);
+    });
+  }
+
   /* =========================== 路由 =========================== */
   var TITLES = {
     mirror: ['镜', 'Mirror · 关系主页'],
@@ -1881,7 +1975,8 @@
     blank: ['白', 'Still · 什么都不用做'],
     words: ['句', 'Words · 我早写好的话'],
     archive: ['存', 'Archive · 一个按钮'],
-    settings: ['设置', 'Setup · 接口与数据']
+    settings: ['设置', 'Setup · 接口与数据'],
+    more: ['更多', 'More · 都在这儿']
   };
   function go(page) {
     $$('.page').forEach(function (p) { p.classList.toggle('on', p.id === 'p-' + page); });
@@ -1924,32 +2019,12 @@
     if (page === 'diary') renderDiary();
     if (page === 'words') renderWords();
     if (page === 'archive') renderArchive();
+    if (page === 'more') renderMore();
     if (page === 'breath' && br && br.on) { /* 呼吸中，不打断 */ }
   }
   $$('#nav button').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
   $$('#mobtab button[data-go]').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
-  $('#mobMore').onclick = function () {
-    var items = [
-      ['cycle', '潮', '记开始的日子'], ['pomo', '钟', '二十五分钟一段'], ['today', '表', '今天这张表'],
-      ['wish', '愿', '划掉的不删'], ['coupon', '券', '我们之间的东西'], ['diary', '记', '一天压成一段'],
-      ['breath', '息', '三分钟'], ['blank', '白', '什么都不用做'], ['words', '句', '我早写好的话'],
-      ['archive', '存', '一个按钮'], ['settings', '设置', '接口与数据']
-    ];
-    openModal({
-      title: '去哪儿', sub: 'more',
-      body: items.map(function (it) {
-        return '<button class="conv" style="display:block;width:100%;margin-bottom:6px" data-p="' + it[0] + '">' +
-          '<div class="n">' + it[1] + ' · ' + it[2] + '</div></button>';
-      }).join(''),
-      foot: '<button class="btn ghost" id="moC">算了</button>',
-      onOpen: function () {
-        $('#moC').onclick = closeModal;
-        $$('#mBody button[data-p]').forEach(function (b) {
-          b.onclick = function () { closeModal(); go(b.dataset.p); };
-        });
-      }
-    });
-  };
+  $('#mobMore').onclick = function () { go('more'); };
 
   /* =========================== 启动 =========================== */
   function tick() {
@@ -1962,7 +2037,11 @@
 
   load();
   autoArchive();
-  if (!S.convs.length) S.convs = [];
+  if (!S.convs.length) {
+    S.convs.unshift({ id: uid(), title: '新的水面上', messages: [], ts: Date.now() });
+    S.cur = S.convs[0].id;
+  }
+  if (!S.cur || !curConv()) S.cur = S.convs[0].id;
   if (S.cur && !curConv()) S.cur = null;
   syncBox();
   applyTheme();
@@ -1981,6 +2060,7 @@
   renderDiary();
   renderWords();
   renderArchive();
+  renderMore();
   fillSettings();
   tick();
   setInterval(tick, 20000);
