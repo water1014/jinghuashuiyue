@@ -10,6 +10,26 @@
 </head>
 <body>
 
+<div class="ambient" aria-hidden="true">
+  <span class="amb-moon"></span>
+  <span class="amb-glow g1"></span>
+  <span class="amb-glow g2"></span>
+  <span class="amb-glow g3"></span>
+  <svg class="amb-waves" viewBox="0 0 1200 300" preserveAspectRatio="none">
+    <filter id="awf"><feTurbulence type="fractalNoise" baseFrequency="0.004 0.03" numOctaves="2" seed="3">
+      <animate attributeName="baseFrequency" dur="30s" values="0.004 0.03;0.007 0.018;0.004 0.03" repeatCount="indefinite"/>
+    </feTurbulence><feDisplacementMap in="SourceGraphic" scale="18"/></filter>
+    <g filter="url(#awf)">
+      <path class="aw" d="M-50 90 C 200 40, 400 140, 700 95 S 1050 40, 1260 100" />
+      <path class="aw" d="M-50 160 C 220 120, 460 210, 760 165 S 1080 120, 1260 170" />
+      <path class="aw" d="M-50 235 C 240 195, 500 275, 800 240 S 1100 195, 1260 245" />
+    </g>
+  </svg>
+  <svg class="amb-noise"><filter id="anf"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3"/></filter>
+    <rect width="100%" height="100%" filter="url(#anf)" opacity=".5"/></svg>
+  <span class="amb-vign"></span>
+</div>
+
 <div class="app">
 
   <!-- ==================== 侧栏（宽屏） ==================== -->
@@ -82,7 +102,11 @@
   <!-- ==================== 主区 ==================== -->
   <main class="main">
     <div class="topbar">
-      <div class="t" id="pageTitle">镜 <small>Mirror · 关系主页</small></div>
+      <div class="tb-l">
+        <div class="t" id="pageTitle">镜 <small>Mirror · 关系主页</small></div>
+        <span class="tb-line"></span>
+      </div>
+      <span class="tb-moon"></span>
       <div class="acts" id="pageActs"></div>
     </div>
 
@@ -112,6 +136,7 @@
               <span class="avatar" id="avMe" title="点击更换头像"></span>
               <svg class="ecg" viewBox="0 0 160 36">
                 <path d="M2 20 H54 L61 12 L68 26 L74 7 L80 29 L86 20 H104"/>
+            <path class="pulse" d="M2 20 H54 L61 12 L68 26 L74 7 L80 29 L86 20 H104"/>
                 <path d="M112 20 H156" opacity=".45"/>
                 <circle cx="108" cy="20" r="1.8" fill="var(--wave)"/>
               </svg>
@@ -251,10 +276,27 @@
         </div>
       </section>
 
+      <!-- ---------------- 更多 · 一页看全 ---------------- -->
+      <section class="page" id="p-more">
+        <div class="maxw">
+          <div class="more-hero">
+            <span class="mh-moon"></span>
+            <div class="mh-t">
+              <b class="serif">都在这儿</b>
+              <i>More · 一页看见所有的东西</i>
+            </div>
+            <span class="mh-line"></span>
+          </div>
+          <div id="moreList"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
       <!-- ---------------- 潮 · 经期 ---------------- -->
       <section class="page" id="p-cycle">
         <div class="maxw">
           <div class="card glass" style="text-align:center;align-items:center">
+            <span class="wm-moon"></span>
             <span class="eyebrow">tide · 潮</span>
             <div class="days-num" id="cyLeft">—</div>
             <div class="hintline" id="cyWhen">还没记过。点下面记一次开始的日子。</div>
@@ -429,6 +471,7 @@
       <section class="page" id="p-words">
         <div class="maxw">
           <div class="card glass" style="text-align:center;align-items:center">
+            <span class="wm-moon"></span>
             <span class="eyebrow">words · 今天这句</span>
             <div class="q serif" id="wdToday" style="margin:16px 0 6px;font-size:23px;line-height:1.9"></div>
             <div class="hintline" id="wdMeta"></div>
