@@ -85,7 +85,8 @@ async function upstream(body, res, signal) {
       model, max_tokens: 2048, temperature, stream: true,
       system: body.system || '',
       messages: (body.messages || []).map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '')
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: Array.isArray(m.content) ? m.content : String(m.content || '')
       }))
     };
   } else {
@@ -98,7 +99,8 @@ async function upstream(body, res, signal) {
       model, stream: true, temperature,
       messages: [{ role: 'system', content: body.system || '' }].concat(
         (body.messages || []).map(m => ({
-          role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '')
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: Array.isArray(m.content) ? m.content : String(m.content || '')
         }))
       )
     };
