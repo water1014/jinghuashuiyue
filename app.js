@@ -2043,6 +2043,9 @@
     return S.photos.filter(function (p) { return (p.album || '') === aid; })
       .sort(function (a, b) { return b.at - a.at; });
   }
+  var phView = 'album';     // album | cal
+  var phCalMonth = '';
+  var MON_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   function renderPhoto() {
     var home = $('#phHome'), one = $('#phOne');
     if (!home || !one) return;
@@ -2052,14 +2055,83 @@
     $('#phMeta').textContent = n
       ? (S.albums.length + ' 本卡册 · ' + n + ' 张 · 约 ' + (bytes / 1048576).toFixed(1) + ' MB · 只在这台机器上')
       : '还没有照片。放一张进来，它就留在这儿了。';
+    $$('#phView button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === phView); });
     if (phCur) {
       home.style.display = 'none'; one.style.display = '';
       renderAlbumView();
-    } else {
-      home.style.display = ''; one.style.display = 'none';
-      renderAlbumList();
+      return;
     }
+    home.style.display = ''; one.style.display = 'none';
+    var av = $('#phAlbumView'), cv = $('#phCal');
+    if (av) av.style.display = phView === 'album' ? '' : 'none';
+    if (cv) cv.style.display = phView === 'cal' ? '' : 'none';
+    if (phView === 'album') renderAlbumList(); else renderCal();
   }
+
+  /* 日历：按月索引，按天分组 */
+  function renderCal() {
+    var idx = $('#calIdx'), days = $('#calDays');
+    if (!idx || !days) return;
+    if (!S.photos.length) {
+      idx.innerHTML = '';
+      days.innerHTML = '<div class="empty">还没有照片。<br>放几张进来，日历才会长出来。</div>';
+      return;
+    }
+    var byMonth = {};
+    S.photos.forEach(function (p) {
+      var d = new Date(p.at);
+      var k = d.getFullYear() + '-' + (d.getMonth() < 9 ? '0' : '') + (d.getMonth() + 1);
+      (byMonth[k] = byMonth[k] || []).push(p);
+    });
+    var months = Object.keys(byMonth).sort().reverse();
+    if (!phCalMonth || !byMonth[phCalMonth]) phCalMonth = months[0];
+    idx.innerHTML = months.map(function (k) {
+      var pp = k.split('-');
+      return '<button class="cal-m' + (k === phCalMonth ? ' on' : '') + '" data-k="' + k + '">' +
+        '<b>' + (+pp[1]) + '<em>月</em></b><i>' + pp[0] + '</i><span>' + byMonth[k].length + '</span></button>';
+    }).join('');
+    $$('#calIdx .cal-m').forEach(function (b) {
+      b.onclick = function () { phCalMonth = b.dataset.k; renderCal(); };
+    });
+
+    var list = byMonth[phCalMonth].slice().sort(function (a, b) { return b.at - a.at; });
+    phOrder = list;
+    var byDay = {};
+    list.forEach(function (p) {
+      var k = ds(new Date(p.at));
+      (byDay[k] = byDay[k] || []).push(p);
+    });
+    var keys = Object.keys(byDay).sort().reverse();
+    days.innerHTML = '';
+    keys.forEach(function (k) {
+      var d = parseD(k);
+      var grp = document.createElement('div');
+      grp.className = 'daygrp';
+      grp.innerHTML = '<div class="dayno"><b>' + (d.getDate() < 10 ? '0' : '') + d.getDate() +
+        '</b><i>' + MON_EN[d.getMonth()] + '</i></div><div class="dayph"></div>';
+      var ph = grp.querySelector('.dayph');
+      byDay[k].forEach(function (p) {
+        var i = list.indexOf(p);
+        var c = document.createElement('div');
+        c.className = 'calp';
+        var hh = new Date(p.at);
+        c.innerHTML = '<div class="ph"><img alt=""></div><div class="nt"></div><div class="tm">' +
+          (hh.getHours() < 10 ? '0' : '') + hh.getHours() + ':' + (hh.getMinutes() < 10 ? '0' : '') + hh.getMinutes() + '</div>';
+        c.querySelector('.nt').textContent = p.note || '（没写话）';
+        phUrl(p.id).then(function (u) { if (u) c.querySelector('img').src = u; });
+        c.onclick = function () { phOpen(i); };
+        c.oncontextmenu = function (e) { e.preventDefault(); phMenu(p); };
+        ph.appendChild(c);
+      });
+      days.appendChild(grp);
+    });
+  }
+  $$('#phView button').forEach(function (b) {
+    b.onclick = function () {
+      phView = b.dataset.v;
+      renderPhoto();
+    };
+  });
   function photoCard(p, idx) {
     var c = document.createElement('div');
     c.className = 'phcard';
@@ -2377,7 +2449,7 @@
       fr.readAsDataURL(blob);
     });
   }
-  /* 导出：按卡册分组，自包含 */
+  /* 导出：一本能翻的立体书（单文件，图片内嵌） */
   $('#phExport').onclick = function () {
     if (!S.photos.length) { toast('还没有照片'); return; }
     var groups = [];
@@ -2402,33 +2474,122 @@
       }).catch(function () { items.push({ it: it, d: '' }); next(); });
     })();
     function build() {
-      var css = "body{margin:0;background:#E9EDF2;color:#2E3542;font-family:'Songti SC',Georgia,serif;padding:40px 24px}" +
-        "h1{font-size:30px;letter-spacing:.3em;text-align:center;font-weight:400}" +
-        ".sub{text-align:center;letter-spacing:.24em;font-size:10px;color:#8B96A8;margin:10px 0 34px}" +
-        "h2{font-size:17px;letter-spacing:.14em;font-weight:400;margin:38px 0 4px;border-bottom:1px solid #DCE2EA;padding-bottom:8px}" +
-        "h2 small{font-size:10px;letter-spacing:.2em;color:#8B96A8;margin-left:10px}" +
-        ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;max-width:1100px;margin:18px auto 0}" +
-        "figure{margin:0;background:#fff;padding:12px 12px 16px;border-radius:8px;box-shadow:0 12px 26px rgba(44,56,76,.14)}" +
-        "figure img{width:100%;border-radius:4px;display:block}" +
-        "figcaption{font-size:13px;line-height:1.9;margin-top:10px;color:#5A6578}" +
-        "figcaption i{display:block;font-style:normal;font-size:9px;letter-spacing:.2em;color:#B3BDCB;margin-top:6px}" +
-        ".end{text-align:center;color:#8B96A8;font-size:11px;letter-spacing:.2em;margin:50px 0 0}";
-      var body = '';
-      groups.forEach(function (g) {
-        body += '<h2>' + esc(g.n) + '<small>' + esc(g.d || '') + ' · ' + g.ps.length + ' 张</small></h2><div class="g">';
-        items.filter(function (x) { return x.it.g === g.n; }).forEach(function (x) {
-          body += '<figure>' + (x.d ? '<img src="' + x.d + '">' : '') +
-            '<figcaption>' + esc(x.it.p.note || '') + '<i>' + cn(ds(new Date(x.it.p.at))) + '</i></figcaption></figure>';
-        });
-        body += '</div>';
-      });
-      var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>镜花水月 · 影</title><style>' + css +
-        '</style></head><body><h1>影</h1><div class="sub">ALBUM · ' + flat.length + ' 张 · ' +
-        (S.albums || []).length + ' 本 · 存于 ' + cn(ds(new Date())) + '</div>' + body +
-        '<div class="end">这份相册自带图片 · 哪天这里没了，你手里还有一份</div></body></html>';
+      var css = [
+        "html,body{height:100%;margin:0;overflow:hidden;background:#0A1018;color:#E8ECF3;",
+        "font-family:'Songti SC','Noto Serif SC',Georgia,serif;-webkit-font-smoothing:antialiased}",
+        "#bg{position:fixed;inset:0;background:radial-gradient(60% 50% at 50% 18%,rgba(120,140,180,.18),transparent 70%),",
+        "radial-gradient(50% 40% at 80% 90%,rgba(120,100,150,.14),transparent 70%),#0A1018}",
+        "#stage{position:fixed;inset:0;display:grid;place-items:center;perspective:2200px}",
+        ".book{position:relative;width:min(90vw,486px);height:min(80vh,700px);transform-style:preserve-3d}",
+        ".pg{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;",
+        "transition:transform 1.05s cubic-bezier(.22,.9,.24,1),opacity .95s ease;opacity:0;pointer-events:none;",
+        "transform:rotateY(34deg) translateZ(-30px) scale(.96)}",
+        ".pg.on{opacity:1;pointer-events:auto;transform:none;z-index:3}",
+        ".pg.past{transform:rotateY(-36deg) translateZ(-70px) scale(.95);opacity:0}",
+        "figure{margin:0;height:100%;display:flex;flex-direction:column;background:linear-gradient(168deg,#FDFBF5,#F1F4F8);",
+        "border-radius:7px;padding:14px 14px 16px;color:#2E3542;box-shadow:0 34px 64px rgba(0,0,0,.55),inset 0 1px 0 #fff;",
+        "transition:transform .5s cubic-bezier(.22,.9,.24,1),box-shadow .5s;cursor:zoom-in;",
+        "transform-origin:50% 60%}",
+        "figure .im{flex:1;min-height:0;border-radius:3px;overflow:hidden;background:#E8EDF3;display:grid;place-items:center}",
+        "figure img{max-width:100%;max-height:100%;object-fit:contain;display:block}",
+        "figure figcaption{font-size:13px;line-height:1.9;margin-top:12px;padding:0 4px;min-height:2.2em}",
+        "figure figcaption i{display:block;font-style:normal;font-family:Georgia,serif;font-size:9px;",
+        "letter-spacing:.24em;color:#9AA5B5;margin-top:6px;text-transform:uppercase}",
+        "figure:hover{transform:translateZ(30px) scale(1.01)}",
+        "figure.zoom{position:fixed;left:50%;top:50%;width:auto;height:auto;max-width:90vw;max-height:88vh;",
+        "transform:translate(-50%,-50%) rotate(-.5deg) scale(1.01);z-index:70;cursor:zoom-out;",
+        "box-shadow:0 60px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.14);padding:16px 16px 18px}",
+        "figure.zoom .im{max-height:68vh}",
+        "figure.zoom img{max-height:68vh;width:auto;max-width:84vw}",
+        "#dim{position:fixed;inset:0;background:rgba(4,8,14,.72);backdrop-filter:blur(6px);opacity:0;",
+        "pointer-events:none;transition:opacity .45s;z-index:60}",
+        "#dim.on{opacity:1;pointer-events:auto}",
+        "#cover{position:fixed;inset:0;display:grid;place-items:center;z-index:80;perspective:1800px;",
+        "transition:opacity 1s ease,transform 1.1s cubic-bezier(.22,.9,.24,1);background:#0A1018}",
+        "#cover.open{opacity:0;transform:rotateY(-72deg) translateX(-26%);pointer-events:none}",
+        ".cv{position:relative;width:min(84vw,400px);height:min(76vh,600px);border-radius:8px;",
+        "background:linear-gradient(165deg,#FBF7EE,#E9EEF5);color:#2E3542;display:flex;flex-direction:column;",
+        "align-items:center;justify-content:center;gap:16px;box-shadow:0 50px 100px rgba(0,0,0,.65),inset 0 1px 0 #fff;",
+        "transform-style:preserve-3d}",
+        ".cv .t{font-size:54px;letter-spacing:.42em;text-indent:.42em}",
+        ".cv .s{font-size:9.5px;letter-spacing:.3em;color:#8B96A8;text-transform:uppercase}",
+        ".cv .h{position:absolute;bottom:34px;font-size:10px;letter-spacing:.22em;color:#B3BDCB}",
+        ".cv button{margin-top:6px;border:1px solid rgba(46,53,66,.18);background:rgba(255,255,255,.6);color:#2E3542;",
+        "font-family:inherit;font-size:12px;letter-spacing:.24em;padding:10px 26px;border-radius:99px;cursor:pointer}",
+        ".cv button:hover{background:#fff}",
+        ".bar{position:fixed;left:0;right:0;bottom:20px;display:flex;align-items:center;justify-content:center;gap:18px;z-index:40}",
+        ".bar button{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.2);",
+        "background:rgba(255,255,255,.08);color:#DCE3EE;cursor:pointer;font-size:18px;font-family:Georgia,serif}",
+        ".bar button:hover{background:rgba(255,255,255,.18)}",
+        ".bar .pn{font-size:10px;letter-spacing:.28em;color:rgba(220,227,238,.6);min-width:70px;text-align:center}",
+        ".toc{padding:30px 26px;height:100%;display:flex;flex-direction:column;background:linear-gradient(168deg,#FDFBF5,#F1F4F8);",
+        "border-radius:7px;color:#2E3542;box-shadow:0 34px 64px rgba(0,0,0,.55),inset 0 1px 0 #fff}",
+        ".toc h3{font-size:13px;letter-spacing:.4em;font-weight:400;color:#8B96A8;margin:0 0 18px}",
+        ".toc .it{display:flex;justify-content:space-between;align-items:baseline;padding:11px 2px;",
+        "border-bottom:1px solid rgba(46,86,120,.1);font-size:15px}",
+        ".toc .it small{font-size:9px;letter-spacing:.2em;color:#9AA5B5}",
+        ".toc .tip{margin-top:auto;font-size:10px;line-height:2;color:#9AA5B5;letter-spacing:.08em}",
+        "@media (max-width:520px){.book{width:92vw;height:76vh}figure figcaption{font-size:12px}}"
+      ].join('');
+      var toc = '<div class="pg"><div class="toc"><h3>目 录</h3>' +
+        groups.map(function (g) {
+          return '<div class="it"><span>' + esc(g.n) + '</span><small>' + g.ps.length + ' 张 · ' +
+            esc((g.ps[0] ? ds(new Date(g.ps[0].at)) : '')) + '</small></div>';
+        }).join('') +
+        '<div class="tip">左右翻页 · 点照片可以放大<br>这是从「镜花水月」里拆下来的一本</div></div></div>';
+      var pages = items.map(function (x) {
+        var d = new Date(x.it.p.at);
+        return '<div class="pg"><figure>' +
+          (x.d ? '<div class="im"><img src="' + x.d + '" alt=""></div>' : '<div class="im" style="color:#9AA5B5;font-size:11px">（这张没取出来）</div>') +
+          '<figcaption>' + esc(x.it.p.note || '') +
+          '<i>' + x.it.g + ' · ' + cn(ds(d)) + ' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' +
+          (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + '</i></figcaption></figure></div>';
+      }).join('');
+      var js = [
+        "(function(){",
+        "var pages=[].slice.call(document.querySelectorAll('.pg')),cur=0,N=pages.length;",
+        "var cover=document.getElementById('cover');",
+        "function show(i){i=Math.max(0,Math.min(N-1,i));",
+        "pages.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('past',k<i);});",
+        "cur=i;document.getElementById('pn').textContent=(i+1)+' / '+N;",
+        "document.getElementById('bPrev').disabled=(i===0);document.getElementById('bNext').disabled=(i===N-1);}",
+        "window.openBook=function(){cover.classList.add('open');setTimeout(function(){cover.style.display='none';},1100);show(0);};",
+        "document.getElementById('bNext').onclick=function(e){e.stopPropagation();show(cur+1);};",
+        "document.getElementById('bPrev').onclick=function(e){e.stopPropagation();show(cur-1);};",
+        "var dim=document.getElementById('dim');",
+        "function unzoom(){[].forEach.call(document.querySelectorAll('figure.zoom'),function(f){f.classList.remove('zoom');});",
+        "dim.classList.remove('on');document.body.classList.remove('zoomed');}",
+        "[].forEach.call(document.querySelectorAll('.pg figure'),function(f){",
+        "f.onclick=function(e){e.stopPropagation();",
+        "if(f.classList.contains('zoom')){unzoom();return;}",
+        "f.classList.add('zoom');dim.classList.add('on');document.body.classList.add('zoomed');};});",
+        "dim.onclick=unzoom;",
+        "document.addEventListener('keydown',function(e){",
+        "if(document.body.classList.contains('zoomed')){if(e.key==='Escape')unzoom();return;}",
+        "if(e.key==='ArrowRight'||e.key===' ')show(cur+1);if(e.key==='ArrowLeft')show(cur-1);});",
+        "var sx=0;document.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;},{passive:true});",
+        "document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx;",
+        "if(Math.abs(dx)>46){dx<0?show(cur+1):show(cur-1);}});",
+        "document.getElementById('stage').addEventListener('click',function(e){",
+        "if(e.target.closest('figure,button,.bar'))return;show(cur+(e.clientX>innerWidth/2?1:-1));});",
+        "})();"
+      ].join('');
+      var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1"><title>镜花水月 · 影</title>' +
+        '<style>' + css + '</style></head><body>' +
+        '<div id="bg"></div>' +
+        '<div id="cover"><div class="cv"><div class="t">影</div>' +
+        '<div class="s">ALBUM · ' + flat.length + ' 张 · ' + groups.length + ' 本</div>' +
+        '<button onclick="openBook()">翻 开</button>' +
+        '<div class="h">' + cn(ds(new Date())) + ' 封</div></div></div>' +
+        '<div id="stage"><div class="book">' + toc + pages + '</div></div>' +
+        '<div class="bar"><button id="bPrev">‹</button><span class="pn" id="pn">1 / ' + (flat.length + 1) + '</span>' +
+        '<button id="bNext">›</button></div>' +
+        '<div id="dim"></div>' +
+        '<script>' + js + '<\/script></body></html>';
       saveText('镜花水月-影-' + todayKey() + '.html', html, 'text/html;charset=utf-8');
-      toast('存好了 · 一份能自己打开的相册');
-      foot('导出了一份相册（' + flat.length + ' 张）');
+      toast('存好了 · 一本能翻的相册');
+      foot('导出了一本相册（' + flat.length + ' 张）');
     }
   };
 
