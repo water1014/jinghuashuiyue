@@ -393,22 +393,21 @@ html[data-theme="dark"] .paper{background:linear-gradient(170deg,rgba(40,52,82,.
   .convhead{display:flex}
 }
 
-/* 药盒水月皮肤（覆盖组件 :host 变量） */
-pill-box{
-  --pill-paper:rgba(238,243,249,.7) !important; --pill-paper-2:rgba(224,232,242,.52) !important;
-  --pill-ink:#2E3542 !important; --pill-ink-2:#5A6578 !important; --pill-ink-3:#8B96A8 !important;
-  --pill-line:rgba(46,58,76,.1) !important; --pill-bub:rgba(255,255,255,.62) !important;
-  --pill-hi:rgba(255,255,255,.86) !important; --pill-glow:rgba(124,144,172,.4) !important;
-  --pill-accent:#7C90AC !important;
-  --pill-sh-1:0 10px 26px rgba(44,56,76,.14) !important; --pill-sh-2:0 2px 8px rgba(44,56,76,.08) !important;
-  --pill-scrim:var(--scrim) !important; --pill-scrim2:var(--scrim) !important;
-  font-weight:300 !important;
+/* --------------------------------------------------------------------------
+   药盒（pilulier）主题靠色
+   用的是原作者的组件，结构一动不动；只在这里给页面级的 --pill-* 供 <pill-tag>
+   / <pill-taken>（它们挂在 document 上，读不到 shadow 内的变量）。取值仍是原
+   组件的调子，只是把墨色往水月这边靠了一点。药盒内部由组件自带 theme 切换。
+   -------------------------------------------------------------------------- */
+:root{
+  --pill-ink-2:#5A6578; --pill-ink-3:#8B96A8;
+  --pill-bub:rgba(255,255,255,.55); --pill-bubline:rgba(255,255,255,.8);
+  --pill-line:#DCE2EA; --pill-edge:rgba(74,86,104,.28);
+  --pill-serif:"Cormorant Garamond","Noto Serif SC",Georgia,serif;
+  --pill-cjk:"Noto Serif SC","Songti SC",serif;
 }
-html[data-theme="dark"] pill-box{
-  --pill-paper:rgba(30,41,66,.74) !important; --pill-paper-2:rgba(22,30,50,.56) !important;
-  --pill-ink:#E6EBF4 !important; --pill-ink-2:#9DAAC2 !important; --pill-ink-3:#6C7A94 !important;
-  --pill-line:rgba(185,205,240,.14) !important; --pill-bub:rgba(44,57,88,.6) !important;
-  --pill-hi:rgba(56,70,104,.5) !important; --pill-glow:rgba(143,166,204,.32) !important;
-  --pill-accent:#9DB2D6 !important;
-  --pill-sh-1:0 12px 30px rgba(0,0,0,.4) !important; --pill-sh-2:0 2px 8px rgba(0,0,0,.3) !important;
+html[data-theme="dark"]{
+  --pill-ink-2:#9DAAC2; --pill-ink-3:#6C7A94;
+  --pill-bub:rgba(255,255,255,.06); --pill-bubline:rgba(255,255,255,.14);
+  --pill-line:rgba(185,205,240,.14); --pill-edge:rgba(255,255,255,.28);
 }
