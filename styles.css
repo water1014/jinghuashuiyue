@@ -411,3 +411,110 @@ html[data-theme="dark"]{
   --pill-bub:rgba(255,255,255,.06); --pill-bubline:rgba(255,255,255,.14);
   --pill-line:rgba(185,205,240,.14); --pill-edge:rgba(255,255,255,.28);
 }
+
+/* ==========================================================================
+   新增：潮 / 钟 / 表 / 愿 / 券 / 记 / 息 / 白 / 句 / 存
+   ========================================================================== */
+/* 钟 · 番茄 */
+.pomo{position:relative;width:260px;height:260px;margin:16px auto 0}
+.pomo-ring{width:100%;height:100%;transform:rotate(-90deg)}
+.pomo-ring .ring-bg{fill:none;stroke:var(--line-2);stroke-width:6}
+.pomo-ring .ring-fg{fill:none;stroke:var(--wave);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:553;stroke-dashoffset:553;transition:stroke-dashoffset .95s linear;filter:drop-shadow(0 0 8px var(--ripple))}
+.pomo-t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.pomo-t .serif{font-size:52px;line-height:1;letter-spacing:.04em}
+.bars{display:flex;align-items:flex-end;gap:8px;height:56px;margin-top:10px}
+.bars .b{flex:1;border-radius:6px 6px 3px 3px;background:var(--wave-soft);position:relative;min-height:4px;transition:height .4s ease}
+.bars .b i{position:absolute;left:0;right:0;bottom:-16px;font-size:8.5px;text-align:center;color:var(--ink-4);font-style:normal}
+.bars .b.today{background:linear-gradient(180deg,var(--wave),rgba(124,144,172,.35))}
+
+/* 表 · 今天 */
+.todo{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;
+  background:var(--glass-2);border:1px solid var(--line-2);margin-bottom:8px;transition:all .25s}
+.todo:hover{background:var(--glass)}
+.todo .ck{width:18px;height:18px;border-radius:50%;border:1.3px solid var(--ink-4);flex:0 0 auto;cursor:pointer;
+  display:grid;place-items:center;transition:all .25s}
+.todo.done .ck{border-color:var(--wave);background:var(--wave)}
+.todo.done .ck::after{content:"";width:5px;height:8px;border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(42deg) translateY(-1px)}
+.todo .x{flex:1;font-size:13px;color:var(--ink)}
+.todo.done .x{color:var(--ink-4);text-decoration:line-through}
+.todo .del{border:0;background:transparent;color:var(--ink-4);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:6px}
+.todo .del:hover{color:var(--danger);background:var(--glass)}
+
+/* 愿 · 愿望 */
+.wish{display:flex;align-items:flex-start;gap:12px;padding:14px 14px;border-radius:16px;
+  background:var(--glass-2);border:1px solid var(--line-2);margin-bottom:10px;transition:all .3s}
+.wish:hover{background:var(--glass)}
+.wish .mk{width:20px;height:20px;flex:0 0 auto;margin-top:2px;cursor:pointer;position:relative}
+.wish .mk svg{width:20px;height:20px;stroke:var(--ink-4);fill:none;stroke-width:1.2}
+.wish.done{opacity:.62}
+.wish.done .mk svg{stroke:var(--moon)}
+.wish.done .mk::after{content:"";position:absolute;left:2px;top:11px;width:16px;height:1.4px;background:var(--moon);transform:rotate(-8deg)}
+.wish.done .t{text-decoration:line-through;color:var(--ink-3)}
+.wish .b{flex:1}
+.wish .t{font-size:13.5px;line-height:1.8;color:var(--ink)}
+.wish .d{font-size:10px;color:var(--ink-4);margin-top:4px;letter-spacing:.08em}
+.wish .del{border:0;background:transparent;color:var(--ink-4);cursor:pointer;font-size:11px;padding:3px 6px;border-radius:6px}
+.wish .del:hover{color:var(--danger)}
+
+/* 券 · 券包 */
+.cps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.cp{position:relative;padding:18px 18px 16px;border-radius:22px;overflow:hidden;
+  background:linear-gradient(158deg,var(--glass-deep),var(--glass));
+  backdrop-filter:blur(22px);border:1px solid var(--line);box-shadow:var(--sh-sm),var(--in-hi);
+  transition:transform .3s,box-shadow .3s}
+.cp:hover{transform:translateY(-3px);box-shadow:var(--sh),var(--in-hi)}
+.cp::before{content:"";position:absolute;left:-9px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;
+  background:var(--water-2);box-shadow:inset 0 0 0 1px var(--line-2)}
+.cp::after{content:"";position:absolute;right:-9px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;
+  background:var(--water-2);box-shadow:inset 0 0 0 1px var(--line-2)}
+.cp .n{font-family:var(--serif);font-size:19px;letter-spacing:.06em}
+.cp .d{font-size:11.5px;line-height:1.85;color:var(--ink-2);margin:9px 0 12px}
+.cp .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1}
+.cp .lft{font-size:9.5px;letter-spacing:.18em;color:var(--ink-4)}
+.cp .use{border:1px solid var(--line-2);background:var(--glass);color:var(--ink-2);cursor:pointer;font-family:var(--sans);
+  font-weight:300;font-size:11px;letter-spacing:.1em;padding:6px 15px;border-radius:99px;transition:all .25s}
+.cp .use:hover{background:var(--wave);color:#fff;border-color:transparent}
+.cp.used{opacity:.5}
+.cp.used .n::after{content:"已用";font-family:var(--sans);font-size:9px;letter-spacing:.14em;color:var(--ink-4);
+  margin-left:9px;border:1px solid var(--line-2);border-radius:99px;padding:2px 7px}
+.cp .stamp{position:absolute;right:14px;top:12px;font-family:var(--serif);font-style:italic;font-size:11px;color:var(--ink-4);
+  transform:rotate(-8deg);opacity:0;transition:opacity .5s}
+.cp.used .stamp{opacity:1}
+.cplog{display:flex;gap:12px;align-items:baseline;padding:8px 6px;border-bottom:1px solid var(--line-2);font-size:12px;color:var(--ink-2)}
+.cplog .d{font-family:var(--serif);font-size:12px;color:var(--ink-3);flex:0 0 92px}
+
+/* 记 · 日记 */
+.day{border-radius:18px;padding:16px 18px;margin-bottom:12px;background:var(--glass-2);
+  border:1px solid var(--line-2);transition:background .25s}
+.day:hover{background:var(--glass)}
+.day .h{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
+.day .dt{font-family:var(--serif);font-size:15px;letter-spacing:.06em}
+.day .m{font-size:9.5px;color:var(--ink-4);letter-spacing:.1em}
+.day .x{font-size:13px;line-height:2;color:var(--ink-2);margin-top:8px;white-space:pre-wrap}
+.day .ops{display:flex;gap:6px;margin-top:10px}
+.day .ops button{border:0;background:transparent;color:var(--ink-4);cursor:pointer;font-size:11px;padding:3px 7px;border-radius:6px}
+.day .ops button:hover{color:var(--wave);background:var(--glass)}
+
+/* 息 · 呼吸 */
+.breath{position:relative;min-height:calc(100vh - 220px);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:26px;padding:20px;transition:background 2.4s ease;border-radius:28px}
+.breath.dim{background:radial-gradient(60% 50% at 50% 46%, rgba(20,28,46,.5), rgba(6,9,18,.9))}
+.breath.dim .br-tip,.breath.dim .br-word span{color:var(--ink-2)}
+.br-circle{width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.75), var(--wave) 74%);
+  box-shadow:0 0 60px var(--ripple),var(--in-hi);
+  transform:scale(.55);transition:transform 5s cubic-bezier(.37,0,.63,1),box-shadow 5s ease}
+.breath.run .br-circle{box-shadow:0 0 110px var(--ripple)}
+.br-word{text-align:center;z-index:2}
+.br-word span{display:block;font-family:var(--serif);font-size:22px;letter-spacing:.2em}
+.br-word i{display:block;font-style:normal;font-size:10px;letter-spacing:.24em;color:var(--ink-3);margin-top:8px}
+.br-tip{max-width:420px;text-align:center;z-index:2;line-height:2}
+
+/* 白 · 留白 */
+.blank{position:relative;min-height:calc(100vh - 220px);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:28px}
+.blank-water{position:absolute;inset:0;width:100%;height:100%;opacity:.5}
+.blank-word{position:relative;font-size:19px;letter-spacing:.3em;color:var(--ink-3);opacity:.7}
+
+/* 存 · 存档 */
+.ar-stat span{display:inline-block;margin-right:18px}
