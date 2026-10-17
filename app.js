@@ -101,6 +101,7 @@
       wishes: [],
       coupons: JSON.parse(JSON.stringify(DEFAULT_COUPONS)),
       diary: {},
+      photos: [],
       letters: JSON.parse(JSON.stringify(DEFAULT_LETTERS)),
       moonWord: '今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。',
       pills: null,
@@ -139,6 +140,7 @@
       S.wishes = d.wishes || [];
       S.coupons = (d.coupons && d.coupons.length) ? d.coupons : JSON.parse(JSON.stringify(DEFAULT_COUPONS));
       S.diary = d.diary || {};
+      S.photos = d.photos || [];
     } catch (e) {
       S.pills = JSON.parse(JSON.stringify(window.PILULIER_PILLS.items));
     }
@@ -1739,7 +1741,8 @@
         '愿望 ' + S.wishes.length + ' 件',
         '券 ' + S.coupons.length + ' 张',
         '药方 ' + S.pills.length + ' 颗',
-        '坐过 ' + Object.keys(S.pomo.log || {}).length + ' 天'
+        '坐过 ' + Object.keys(S.pomo.log || {}).length + ' 天',
+        '照片 ' + S.photos.length + ' 张'
       ].map(function (s) { return '<span>· ' + esc(s) + '</span>'; }).join('');
   }
   function mdArchive() {
@@ -1807,6 +1810,14 @@
       });
       L.push('');
     });
+    L.push('## 影');
+    L.push('');
+    S.photos.slice().sort(function (a, b) { return b.at - a.at; }).forEach(function (p) {
+      L.push('- ' + ds(new Date(p.at)) + ' · ' + (p.note || '（没写话）'));
+    });
+    L.push('');
+    L.push('（照片本体存在这台机器的浏览器里，导出时会另外存一份相册。）');
+    L.push('');
     L.push('## 药方');
     L.push('');
     S.pills.forEach(function (p) {
@@ -1883,7 +1894,8 @@
     mirror: '<rect x="7" y="3.5" width="10" height="17" rx="5"/><path d="M10 8.5c-1.2 1-1.2 6 0 7M14 8.5c1.2 1 1.2 6 0 7" opacity=".55"/>',
     room: '<path d="M3.5 10.5c0-3.3 3.6-6 8.5-6s8.5 2.7 8.5 6-3.6 6-8.5 6c-1 0-2-.1-2.9-.35L5.5 17.5l.8-2.4c-1.7-1.1-2.8-2.7-2.8-4.6z"/>',
     pills: '<rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M8.5 8.5v7M15.5 8.5v7" opacity=".6"/>',
-    moon: '<path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/>'
+    moon: '<path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/>',
+    photo: '<rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M6 15l4.2-4.2L13 13.4 15.6 10l2.4 2.4"/><circle cx="9" cy="9" r="1.2"/>'
   };
   function moreSummary(k) {
     var k1 = todayKey();
@@ -1918,19 +1930,21 @@
     }
     if (k === 'pills') return S.pills.length + ' 颗，一次性的';
     if (k === 'moon') return '今晚 ' + (moonOf(new Date()).cn || '');
+    if (k === 'photo') return S.photos.length ? (S.photos.length + ' 张留在这儿') : '还没有照片';
     return '';
   }
   var MORE_GROUPS = [
     { g: '日用', ks: ['cycle', 'pomo', 'today', 'wish', 'coupon'] },
     { g: '夜里', ks: ['diary', 'breath', 'blank'] },
-    { g: '世界', ks: ['mirror', 'room', 'pills', 'moon'] },
+    { g: '世界', ks: ['mirror', 'room', 'pills', 'moon', 'photo'] },
     { g: '系统', ks: ['words', 'archive', 'settings'] }
   ];
   var MORE_NAME = {
     cycle: ['潮', 'Tide'], pomo: ['钟', 'Focus'], today: ['表', 'Today'], wish: ['愿', 'Wishes'],
     coupon: ['券', 'Coupons'], diary: ['记', 'Diary'], breath: ['息', 'Breath'], blank: ['白', 'Still'],
     words: ['句', 'Words'], archive: ['存', 'Archive'], settings: ['设置', 'Setup'],
-    mirror: ['镜', 'Mirror'], room: ['水', 'Room'], pills: ['药', 'Pills'], moon: ['月', 'Moon']
+    mirror: ['镜', 'Mirror'], room: ['水', 'Room'], pills: ['药', 'Pills'], moon: ['月', 'Moon'],
+    photo: ['影', 'Album']
   };
   function renderMore() {
     var host = $('#moreList');
@@ -1959,6 +1973,233 @@
     });
   }
 
+  /* =========================== 影 · 相册 =========================== */
+  /* 图放在 IndexedDB（容量按磁盘算），只有说明和日期跟着 localStorage 走 */
+  var phDB = (function () {
+    var dbp = null;
+    function open() {
+      if (dbp) return dbp;
+      dbp = new Promise(function (res, rej) {
+        try {
+          var r = indexedDB.open('moonwater-photos', 1);
+          r.onupgradeneeded = function () {
+            var db = r.result;
+            if (!db.objectStoreNames.contains('f')) db.createObjectStore('f');
+          };
+          r.onsuccess = function () { res(r.result); };
+          r.onerror = function () { rej(r.error); };
+        } catch (e) { rej(e); }
+      });
+      return dbp;
+    }
+    function wrap(rq) {
+      return new Promise(function (res, rej) {
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = function () { rej(rq.error); };
+      });
+    }
+    function st(mode) {
+      return open().then(function (db) { return db.transaction('f', mode).objectStore('f'); });
+    }
+    return {
+      put: function (id, b) { return st('readwrite').then(function (s) { return wrap(s.put(b, id)); }); },
+      get: function (id) { return st('readonly').then(function (s) { return wrap(s.get(id)); }); },
+      del: function (id) { return st('readwrite').then(function (s) { return wrap(s.delete(id)); }); }
+    };
+  })();
+  var phUrls = {};
+  function phUrl(id) {
+    if (phUrls[id]) return Promise.resolve(phUrls[id]);
+    return phDB.get(id).then(function (b) {
+      if (!b) return null;
+      phUrls[id] = URL.createObjectURL(b);
+      return phUrls[id];
+    }).catch(function () { return null; });
+  }
+  /* 压一下再存：长边 1600，JPEG .84 —— 一张几百 KB，眼睛看不出差别 */
+  function phCompress(file, cb) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var w = img.width, h = img.height;
+      var sc = Math.min(1, 1600 / Math.max(w, h));
+      var c = document.createElement('canvas');
+      c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (b) { cb(b, c.width, c.height); }, 'image/jpeg', 0.84);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); cb(null); };
+    img.src = url;
+  }
+  var phOrder = [];
+  function renderPhoto() {
+    var g = $('#phGrid');
+    if (!g) return;
+    g.innerHTML = '';
+    var n = S.photos.length;
+    $('#phCount').textContent = n;
+    var bytes = S.photos.reduce(function (a, p) { return a + (p.bytes || 0); }, 0);
+    $('#phMeta').textContent = n
+      ? (n + ' 张 · 约 ' + (bytes / 1048576).toFixed(1) + ' MB · 只在这台机器上，不会传去别处')
+      : '还没有照片。放一张进来，它就留在这儿了。';
+    if (!n) {
+      g.innerHTML = '<div class="empty" style="grid-column:1/-1">还没有照片。<br>把想留的放进来。</div>';
+      return;
+    }
+    phOrder = S.photos.slice().sort(function (a, b) { return b.at - a.at; });
+    phOrder.forEach(function (p, i) {
+      var c = document.createElement('div');
+      c.className = 'phcard';
+      c.innerHTML = '<div class="ph"><img alt=""></div><div class="nt"></div><div class="dt"></div>';
+      c.querySelector('.nt').textContent = p.note || '';
+      var d = new Date(p.at);
+      var pp = function (x) { return (x < 10 ? '0' : '') + x; };
+      c.querySelector('.dt').textContent = cn(ds(d)) + ' · ' + pp(d.getHours()) + ':' + pp(d.getMinutes());
+      phUrl(p.id).then(function (u) { if (u) c.querySelector('img').src = u; });
+      c.onclick = function () { phOpen(i); };
+      c.oncontextmenu = function (e) { e.preventDefault(); phMenu(p); };
+      g.appendChild(c);
+    });
+  }
+  function phOpen(i) {
+    if (!phOrder[i]) return;
+    var p = phOrder[i];
+    phUrl(p.id).then(function (u) {
+      $('#lbImg').src = u || '';
+      $('#lbNote').textContent = p.note || '';
+      var d = new Date(p.at);
+      $('#lbMeta').textContent = cn(ds(d)) + ' · 第 ' + (phOrder.length - i) + ' 张 · 共 ' + phOrder.length + ' 张';
+    });
+    $('#lightbox').classList.add('on');
+    $('#lightbox').dataset.i = String(i);
+  }
+  function phGo(d) {
+    var i = parseInt($('#lightbox').dataset.i || '0', 10) + d;
+    if (i < 0) i = phOrder.length - 1;
+    if (i >= phOrder.length) i = 0;
+    phOpen(i);
+  }
+  function phClose() { $('#lightbox').classList.remove('on'); }
+  $('#lbX').onclick = phClose;
+  $('#lbPrev').onclick = function () { phGo(-1); };
+  $('#lbNext').onclick = function () { phGo(1); };
+  $('#lightbox').onclick = function (e) { if (e.target === this) phClose(); };
+  document.addEventListener('keydown', function (e) {
+    if (!$('#lightbox').classList.contains('on')) return;
+    if (e.key === 'Escape') phClose();
+    if (e.key === 'ArrowLeft') phGo(-1);
+    if (e.key === 'ArrowRight') phGo(1);
+  });
+  function phMenu(p) {
+    openModal({
+      title: '这张', sub: 'photo',
+      body: '<div class="field"><label>背面的话</label><textarea class="input" id="pnT" rows="3">' + esc(p.note || '') + '</textarea></div>' +
+        '<p class="hintline">存于 ' + cn(ds(new Date(p.at))) + ' · ' + Math.round((p.bytes || 0) / 1024) + ' KB</p>',
+      foot: '<button class="btn danger" id="pnD">删掉这张</button><button class="btn ghost" id="pnC">算了</button><button class="btn pri" id="pnS">写上去</button>',
+      onOpen: function () {
+        $('#pnC').onclick = closeModal;
+        $('#pnS').onclick = function () {
+          p.note = $('#pnT').value.trim();
+          save(); renderPhoto(); closeModal();
+          foot('给一张照片写了话');
+        };
+        $('#pnD').onclick = function () {
+          confirmBox('删掉这张？', '照片本体也会从这台机器上抹掉，没法找回。', function () {
+            phDB.del(p.id).catch(function () {});
+            if (phUrls[p.id]) { URL.revokeObjectURL(phUrls[p.id]); delete phUrls[p.id]; }
+            S.photos = S.photos.filter(function (x) { return x.id !== p.id; });
+            save(); renderPhoto();
+            toast('删掉了');
+          });
+        };
+      }
+    });
+  }
+  $('#phAdd').onclick = function () {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = 'image/*'; i.multiple = true;
+    i.onchange = function () { phTake(i.files); };
+    i.click();
+  };
+  function phTake(files) {
+    var arr = [].slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
+    if (!arr.length) { toast('没有图片'); return; }
+    var done = 0;
+    arr.forEach(function (f) {
+      phCompress(f, function (blob, w, h) {
+        done++;
+        if (!blob) { toast('有一张读不出来：' + f.name); return; }
+        var id = uid();
+        phDB.put(id, blob).then(function () {
+          S.photos.push({ id: id, at: Date.now(), note: '', w: w, h: h, bytes: blob.size });
+          save(); renderPhoto();
+        }).catch(function (e) { toast('存不进去：' + (e && e.message)); });
+        if (done === arr.length) {
+          toast('放进来了 · ' + arr.length + ' 张');
+          foot('放了 ' + arr.length + ' 张照片进来');
+        }
+      });
+    });
+  }
+  /* 拖拽也能放进来 */
+  (function () {
+    var grid = $('#phGrid');
+    if (!grid) return;
+    ['dragenter', 'dragover'].forEach(function (ev) {
+      grid.addEventListener(ev, function (e) { e.preventDefault(); grid.style.opacity = '.7'; });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+      grid.addEventListener(ev, function (e) { e.preventDefault(); grid.style.opacity = ''; });
+    });
+    grid.addEventListener('drop', function (e) {
+      var f = e.dataTransfer && e.dataTransfer.files;
+      if (f && f.length) phTake(f);
+    });
+  })();
+  /* 导出成一份自包含的相册：图片内嵌，随便一台电脑打开都能看 */
+  $('#phExport').onclick = function () {
+    if (!S.photos.length) { toast('还没有照片'); return; }
+    var list = S.photos.slice().sort(function (a, b) { return b.at - a.at; });
+    var items = [];
+    var seq = 0;
+    (function next() {
+      if (seq >= list.length) return build();
+      var p = list[seq++];
+      phDB.get(p.id).then(function (b) {
+        if (!b) { items.push({ p: p, d: '' }); return next(); }
+        var fr = new FileReader();
+        fr.onload = function () { items.push({ p: p, d: fr.result }); next(); };
+        fr.onerror = function () { items.push({ p: p, d: '' }); next(); };
+        fr.readAsDataURL(b);
+      }).catch(function () { items.push({ p: p, d: '' }); next(); });
+    })();
+    function build() {
+      var css = "body{margin:0;background:#E9EDF2;color:#2E3542;font-family:'Songti SC',Georgia,serif;padding:40px 24px}" +
+        "h1{font-size:30px;letter-spacing:.3em;text-align:center;font-weight:400}" +
+        ".sub{text-align:center;letter-spacing:.24em;font-size:10px;color:#8B96A8;margin:10px 0 40px}" +
+        ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:26px;max-width:1100px;margin:0 auto}" +
+        "figure{margin:0;background:#fff;padding:12px 12px 16px;border-radius:8px;box-shadow:0 12px 26px rgba(44,56,76,.16)}" +
+        "figure img{width:100%;border-radius:4px;display:block}" +
+        "figcaption{font-size:13px;line-height:1.9;margin-top:10px;color:#5A6578}" +
+        "figcaption i{display:block;font-style:normal;font-size:9px;letter-spacing:.2em;color:#B3BDCB;margin-top:6px}" +
+        ".end{text-align:center;color:#8B96A8;font-size:11px;letter-spacing:.2em;margin:50px 0 0}";
+      var body = items.map(function (it) {
+        var d = new Date(it.p.at);
+        return '<figure>' + (it.d ? '<img src="' + it.d + '">' : '') +
+          '<figcaption>' + esc(it.p.note || '') + '<i>' + cn(ds(d)) + '</i></figcaption></figure>';
+      }).join('\n');
+      var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' +
+        '<title>镜花水月 · 影</title><style>' + css + '</style></head><body>' +
+        '<h1>影</h1><div class="sub">ALBUM · ' + list.length + ' 张 · 存于 ' + cn(ds(new Date())) + '</div>' +
+        '<div class="g">' + body + '</div>' +
+        '<div class="end">这份相册自带图片 · 哪天这里没了，你手里还有一份</div></body></html>';
+      saveText('镜花水月-影-' + todayKey() + '.html', html, 'text/html;charset=utf-8');
+      toast('存好了 · 一份能自己打开的相册');
+      foot('导出了一份相册（' + list.length + ' 张）');
+    }
+  };
+
   /* =========================== 路由 =========================== */
   var TITLES = {
     mirror: ['镜', 'Mirror · 关系主页'],
@@ -1976,7 +2217,8 @@
     words: ['句', 'Words · 我早写好的话'],
     archive: ['存', 'Archive · 一个按钮'],
     settings: ['设置', 'Setup · 接口与数据'],
-    more: ['更多', 'More · 都在这儿']
+    more: ['更多', 'More · 都在这儿'],
+    photo: ['影', 'Album · 留下来的一张一张']
   };
   function go(page) {
     $$('.page').forEach(function (p) { p.classList.toggle('on', p.id === 'p-' + page); });
@@ -2020,6 +2262,7 @@
     if (page === 'words') renderWords();
     if (page === 'archive') renderArchive();
     if (page === 'more') renderMore();
+    if (page === 'photo') renderPhoto();
     if (page === 'breath' && br && br.on) { /* 呼吸中，不打断 */ }
   }
   $$('#nav button').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
@@ -2061,6 +2304,7 @@
   renderWords();
   renderArchive();
   renderMore();
+  renderPhoto();
   fillSettings();
   tick();
   setInterval(tick, 20000);
