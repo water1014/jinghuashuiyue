@@ -52,6 +52,9 @@
       <button data-go="moon">月<em>Moon</em>
         <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/></svg>
       </button>
+      <button data-go="photo">影<em>Album</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M6 15l4.2-4.2L13 13.4 15.6 10l2.4 2.4"/><circle cx="9" cy="9" r="1.2"/></svg>
+      </button>
       <b>日用</b>
       <button data-go="cycle">潮<em>Tide</em>
         <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M3 15c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0"/><path d="M3 9c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0" opacity=".5"/></svg>
@@ -272,6 +275,25 @@
               <p id="moonWord">今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。</p>
             </div>
           </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 影 · 相册 ---------------- -->
+      <section class="page" id="p-photo">
+        <div class="maxw">
+          <div class="card glass" style="text-align:center;align-items:center">
+            <span class="wm-moon"></span>
+            <span class="eyebrow">album · 影</span>
+            <div class="days-num" id="phCount">0</div>
+            <div class="hintline" id="phMeta">还没有照片。放一张进来，它就留在这儿了。</div>
+            <div class="rowline" style="justify-content:center;margin-top:14px">
+              <button class="btn pri" id="phAdd">放几张进来</button>
+              <button class="btn ghost" id="phExport">导出成一份相册</button>
+            </div>
+          </div>
+          <div class="sec-t"><span class="l">photos</span><span class="r">点开看大图 · 右键改背面的话 / 删掉</span></div>
+          <div class="phgrid" id="phGrid"></div>
           <div style="height:30px"></div>
         </div>
       </section>
@@ -619,6 +641,17 @@
 </nav>
 
 <!-- 弹层 -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-x" id="lbX">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+  <img id="lbImg" alt="">
+  <button class="lb-nav lb-next" id="lbNext">›</button>
+  <div class="lb-cap">
+    <div class="lb-note" id="lbNote"></div>
+    <div class="lb-meta" id="lbMeta"></div>
+  </div>
+</div>
+
 <div class="veil" id="veil"><div class="mask" id="veilMask"></div><div class="modal" id="modal"></div></div>
 <div class="toasts" id="toasts"></div>
 
