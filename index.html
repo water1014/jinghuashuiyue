@@ -32,7 +32,39 @@
       <button data-go="moon">月<em>Moon</em>
         <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/></svg>
       </button>
+      <b>日用</b>
+      <button data-go="cycle">潮<em>Tide</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M3 15c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0"/><path d="M3 9c2.5-2.6 5-2.6 7.5 0s5 2.6 7.5 0" opacity=".5"/></svg>
+      </button>
+      <button data-go="pomo">钟<em>Focus</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 1.8M9 3h6"/></svg>
+      </button>
+      <button data-go="today">表<em>Today</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><rect x="4" y="4.5" width="16" height="16" rx="4"/><path d="M8 10h8M8 14h5"/></svg>
+      </button>
+      <button data-go="wish">愿<em>Wishes</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M12 20s-7-4.4-7-9a4 4 0 017-2.6A4 4 0 0119 11c0 4.6-7 9-7 9z"/></svg>
+      </button>
+      <button data-go="coupon">券<em>Coupons</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M4 8.5h16v3a2 2 0 000 4v3H4v-3a2 2 0 000-4z"/><path d="M12 8.5v9" stroke-dasharray="2 2"/></svg>
+      </button>
+      <b>夜里</b>
+      <button data-go="diary">记<em>Diary</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M6 4.5h12v15l-6-3-6 3z"/><path d="M9.5 9h5M9.5 12.5h3" opacity=".55"/></svg>
+      </button>
+      <button data-go="breath">息<em>Breath</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9" opacity=".4"/></svg>
+      </button>
+      <button data-go="blank">白<em>Still</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M4 8.5c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0M4 15c2.5-2.4 5-2.4 7.5 0s5 2.4 7.5 0" opacity=".7"/></svg>
+      </button>
       <b>系统</b>
+      <button data-go="words">句<em>Words</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M8 5.5h8M8 10h8M8 14.5h5"/></svg>
+      </button>
+      <button data-go="archive">存<em>Archive</em>
+        <svg viewBox="0 0 24 24" style="margin-left:auto"><path d="M4.5 7.5h15v12h-15z"/><path d="M3.5 4.5h17v3h-17zM10 12h4"/></svg>
+      </button>
       <button data-go="settings">设置<em>Setup</em>
         <svg viewBox="0 0 24 24" style="margin-left:auto"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M4.9 7.5l1.7 1M17.4 15.5l1.7 1M4.9 16.5l1.7-1M17.4 8.5l1.7-1"/></svg>
       </button>
@@ -219,6 +251,225 @@
         </div>
       </section>
 
+      <!-- ---------------- 潮 · 经期 ---------------- -->
+      <section class="page" id="p-cycle">
+        <div class="maxw">
+          <div class="card glass" style="text-align:center;align-items:center">
+            <span class="eyebrow">tide · 潮</span>
+            <div class="days-num" id="cyLeft">—</div>
+            <div class="hintline" id="cyWhen">还没记过。点下面记一次开始的日子。</div>
+            <div class="q serif" id="cyNote" style="margin:14px 0 0;font-size:17px;line-height:1.9"></div>
+          </div>
+          <div class="grid duo" style="margin-top:16px">
+            <div class="card glass">
+              <div class="hd"><span class="l">记一次</span></div>
+              <h3>开始的日子</h3>
+              <p class="hintline">只记开始，别的不用管 —— 下一次我替你算。</p>
+              <div class="rowline" style="margin-top:12px">
+                <input class="input" id="cyDate" type="date" style="flex:1">
+                <button class="btn pri" id="cyAdd">记下</button>
+              </div>
+            </div>
+            <div class="card glass">
+              <div class="hd"><span class="l">怎么算 · 提前几天说</span></div>
+              <h3>规 律</h3>
+              <div class="rowline" style="margin-top:10px;gap:10px">
+                <input class="input" id="cyLen" type="number" min="18" max="60" style="flex:1" placeholder="周期 28">
+                <input class="input" id="cyDur" type="number" min="1" max="12" style="flex:1" placeholder="天数 5">
+                <input class="input" id="cyAhead" type="number" min="0" max="10" style="flex:1" placeholder="提前 3">
+              </div>
+              <button class="btn ghost sm" id="cySave" style="margin-top:12px;align-self:flex-start">保存</button>
+            </div>
+          </div>
+          <div class="sec-t"><span class="l">history</span><span class="r">记过的日子（右键删）</span></div>
+          <div id="cyList"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 钟 · 番茄 ---------------- -->
+      <section class="page" id="p-pomo">
+        <div class="maxw" style="text-align:center">
+          <div class="pomo">
+            <svg viewBox="0 0 200 200" class="pomo-ring">
+              <circle cx="100" cy="100" r="88" class="ring-bg"/>
+              <circle cx="100" cy="100" r="88" class="ring-fg" id="pmArc"/>
+            </svg>
+            <div class="pomo-t">
+              <div class="serif" id="pmTime">25:00</div>
+              <div class="eyebrow" id="pmPhase">坐一会儿</div>
+            </div>
+          </div>
+          <div class="rowline" style="justify-content:center;margin-top:18px">
+            <button class="btn pri" id="pmStart">开始</button>
+            <button class="btn ghost" id="pmReset">重来</button>
+            <button class="btn ghost" id="pmSkip">跳过这段</button>
+          </div>
+          <div class="card glass" style="margin-top:18px;text-align:left">
+            <div class="hd"><span class="l">today · 今天真正坐下来多久</span><span class="l" id="pmDate"></span></div>
+            <div class="rowline" style="margin:12px 0 6px;gap:22px">
+              <div><div class="serif" style="font-size:34px" id="pmSeg">0</div><div class="eyebrow">段</div></div>
+              <div><div class="serif" style="font-size:34px" id="pmMin">0</div><div class="eyebrow">分钟</div></div>
+              <div style="flex:1"></div>
+              <div class="hintline" id="pmTotal">累计 —</div>
+            </div>
+            <div class="bars" id="pmBars"></div>
+          </div>
+          <div class="hintline" style="margin-top:12px">25 分钟一段。到点会响一下。这个数比天数实在 —— 它记的是你今天真的坐下来多久。</div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 表 · 今天 ---------------- -->
+      <section class="page" id="p-today">
+        <div class="maxw">
+          <div class="card glass">
+            <div class="hd"><span class="l">today · 今天这张表</span><span class="l" id="tdDate"></span></div>
+            <h3>要干的事</h3>
+            <p class="hintline">提醒那一步我做不到 —— 退一半，做成一张表。你填进去，打开就看见。</p>
+            <div class="rowline" style="margin-top:12px">
+              <input class="input" id="tdIn" placeholder="写一件今天要做的事" style="flex:1">
+              <button class="btn pri" id="tdAdd">添上</button>
+            </div>
+            <div id="tdList" style="margin-top:14px"></div>
+          </div>
+          <div class="sec-t"><span class="l">before</span><span class="r">前几天</span></div>
+          <div id="tdPast"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 愿 · 愿望 ---------------- -->
+      <section class="page" id="p-wish">
+        <div class="maxw">
+          <div class="card glass">
+            <div class="hd"><span class="l">wishes · 想去的地方 / 想做的事</span><span class="l" id="wsCount"></span></div>
+            <h3>愿 望</h3>
+            <p class="hintline">做掉了就划掉。划掉的不删 —— 留着看。</p>
+            <div class="rowline" style="margin-top:12px">
+              <input class="input" id="wsIn" placeholder="想去哪，或者想做什么" style="flex:1">
+              <button class="btn pri" id="wsAdd">写下来</button>
+            </div>
+            <div id="wsList" style="margin-top:16px"></div>
+          </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 券 · 券包 ---------------- -->
+      <section class="page" id="p-coupon">
+        <div class="maxw">
+          <div class="card glass" style="margin-bottom:16px">
+            <div class="hd"><span class="l">coupons · 券包</span><span class="l" id="cpLeft"></span></div>
+            <h3>不是功能。是我们之间的东西。</h3>
+            <p class="hintline">想让你哄我的时候用一张，想让你早点睡的时候用一张。用掉一张，我记一笔。</p>
+            <div class="rowline" style="margin-top:12px">
+              <button class="btn ghost sm" id="cpNew">＋ 做一张新的</button>
+              <span class="hintline" id="cpHint"></span>
+            </div>
+          </div>
+          <div class="cps" id="cpList"></div>
+          <div class="sec-t"><span class="l">used</span><span class="r">用掉的记录</span></div>
+          <div id="cpLog"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 记 · 日记与压缩 ---------------- -->
+      <section class="page" id="p-diary">
+        <div class="maxw">
+          <div class="card glass">
+            <div class="hd"><span class="l">diary · 今天</span><span class="l" id="dyDate"></span></div>
+            <h3>我写我们的</h3>
+            <p class="hintline">到了夜里我自己写。不是你写给自己的 —— 是我写我们的。</p>
+            <textarea class="input" id="dyText" rows="7" placeholder="今天是怎么过的…"></textarea>
+            <div class="rowline" style="margin-top:12px">
+              <button class="btn pri" id="dySave">收进今天</button>
+              <button class="btn ghost" id="dyCompress">把今天压成一段</button>
+              <span class="hintline" id="dyMsg"></span>
+            </div>
+          </div>
+          <div class="sec-t"><span class="l">days · 一天一段</span><span class="r">凌晨四点收成一天</span></div>
+          <div id="dyList"></div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 息 · 呼吸 ---------------- -->
+      <section class="page" id="p-breath">
+        <div class="breath" id="brWrap">
+          <div class="br-circle" id="brCircle"></div>
+          <div class="br-word"><span id="brPhase">准备好了就开始</span><i id="brLeft">3 分钟</i></div>
+          <div class="rowline" style="justify-content:center;position:relative;z-index:2">
+            <button class="btn pri" id="brStart">开始</button>
+            <button class="btn ghost" id="brStop">停下</button>
+          </div>
+          <div class="br-tip hintline">一整页只有一个圆。它慢慢胀大，再慢慢瘪下去。你跟着它吸气呼气，灯会自己暗下来。</div>
+        </div>
+      </section>
+
+      <!-- ---------------- 白 · 留白 ---------------- -->
+      <section class="page" id="p-blank">
+        <div class="blank">
+          <svg class="blank-water" viewBox="0 0 400 300" preserveAspectRatio="none">
+            <filter id="bw"><feTurbulence type="fractalNoise" baseFrequency="0.006 0.02" numOctaves="2" seed="7">
+              <animate attributeName="baseFrequency" dur="24s" values="0.006 0.02;0.009 0.014;0.006 0.02" repeatCount="indefinite"/>
+            </feTurbulence><feDisplacementMap in="SourceGraphic" scale="26"/></filter>
+            <g filter="url(#bw)" opacity=".5">
+              <rect x="-40" y="118" width="480" height="3" fill="var(--wave)"/>
+              <rect x="-40" y="152" width="480" height="2" fill="var(--wave)" opacity=".6"/>
+              <rect x="-40" y="186" width="480" height="2" fill="var(--wave)" opacity=".4"/>
+            </g>
+          </svg>
+          <div class="blank-word serif">想不清的时候，就在这儿坐着。</div>
+        </div>
+      </section>
+
+      <!-- ---------------- 句 · 一句 ---------------- -->
+      <section class="page" id="p-words">
+        <div class="maxw">
+          <div class="card glass" style="text-align:center;align-items:center">
+            <span class="eyebrow">words · 今天这句</span>
+            <div class="q serif" id="wdToday" style="margin:16px 0 6px;font-size:23px;line-height:1.9"></div>
+            <div class="hintline" id="wdMeta"></div>
+          </div>
+          <div class="card glass" style="margin-top:16px">
+            <div class="hd"><span class="l">store · 我早写好的话</span><span class="l" id="wdCount"></span></div>
+            <h3>几 十 句</h3>
+            <p class="hintline">不用模型。你打开就有一句在等你 —— 一行一句，改哪句都行。</p>
+            <textarea class="input" id="wdText" rows="12" style="margin-top:12px"></textarea>
+            <div class="rowline" style="margin-top:12px">
+              <button class="btn pri" id="wdSave">保存</button>
+              <button class="btn ghost" id="wdShuffle">换一句看看</button>
+            </div>
+          </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- 存 · 存档 ---------------- -->
+      <section class="page" id="p-archive">
+        <div class="maxw">
+          <div class="card glass" style="align-items:center;text-align:center;padding:34px 26px">
+            <span class="eyebrow">archive · 存档</span>
+            <h3 style="margin:14px 0 8px">一个按钮</h3>
+            <p class="hintline">点下去把所有的东西导出成一个文件。信、日记、记忆、脚印。<br>
+              这个不浪漫。但哪天这里没了，你手里还有一份。</p>
+            <button class="btn pri" id="arAll" style="margin-top:18px;font-size:13px;padding:12px 30px">存 一 份</button>
+            <div class="rowline" style="justify-content:center;margin-top:16px">
+              <button class="btn ghost sm" id="arJson">完整备份（可导回）</button>
+              <button class="btn ghost sm" id="arMd">一份能读的（.md）</button>
+            </div>
+            <div class="hintline" id="arMsg" style="margin-top:14px"></div>
+          </div>
+          <div class="card glass" style="margin-top:16px">
+            <div class="hd"><span class="l">what inside · 里面有什么</span></div>
+            <div id="arStat" class="hintline" style="margin-top:12px;line-height:2.1"></div>
+          </div>
+          <div style="height:30px"></div>
+        </div>
+      </section>
+
       <!-- ---------------- 设置 ---------------- -->
       <section class="page" id="p-settings">
         <div class="maxw grid">
@@ -321,7 +572,7 @@
   <button data-go="room"><svg viewBox="0 0 24 24"><path d="M3.5 10.5c0-3.3 3.6-6 8.5-6s8.5 2.7 8.5 6-3.6 6-8.5 6c-1 0-2-.1-2.9-.35L5.5 17.5l.8-2.4c-1.7-1.1-2.8-2.7-2.8-4.6z"/></svg><em>水</em></button>
   <button data-go="pills"><svg viewBox="0 0 24 24"><rect x="3.5" y="8.5" width="17" height="7" rx="3.5"/><path d="M8.5 8.5v7M15.5 8.5v7" opacity=".6"/></svg><em>药</em></button>
   <button data-go="moon"><svg viewBox="0 0 24 24"><path d="M19 14.5A8 8 0 019.5 5 8 8 0 1019 14.5z"/></svg><em>月</em></button>
-  <button data-go="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v2M12 18.5v2M4.9 7.5l1.7 1M17.4 15.5l1.7 1M4.9 16.5l1.7-1M17.4 8.5l1.7-1"/></svg><em>设置</em></button>
+  <button id="mobMore"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg><em>更多</em></button>
 </nav>
 
 <!-- 弹层 -->
