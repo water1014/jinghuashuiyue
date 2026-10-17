@@ -722,3 +722,28 @@ html[data-theme="dark"] .phcard{background:linear-gradient(170deg,rgba(52,66,96,
 .up-strip{display:flex;gap:8px;margin:10px 0 16px;overflow-x:auto;padding-bottom:4px}
 .up-strip img{width:76px;height:76px;object-fit:cover;border-radius:10px;flex:0 0 auto;
   border:1px solid var(--line);box-shadow:0 4px 12px rgba(44,56,76,.14)}
+
+/* 日历视图 */
+.cal-idx{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 16px}
+.cal-idx::-webkit-scrollbar{height:0}
+.cal-m{flex:0 0 auto;border:1px solid var(--line-2);background:var(--glass-2);border-radius:16px;
+  padding:10px 16px 9px;cursor:pointer;font-family:var(--serif);color:var(--ink-2);position:relative;
+  display:flex;flex-direction:column;gap:1px;min-width:78px;transition:all .25s}
+.cal-m b{font-size:19px;font-weight:400;line-height:1.1}
+.cal-m b em{font-style:normal;font-size:9px;letter-spacing:.1em;margin-left:3px;color:var(--ink-3)}
+.cal-m i{font-style:normal;font-size:8.5px;letter-spacing:.22em;color:var(--ink-4)}
+.cal-m span{position:absolute;right:9px;top:9px;font-size:8.5px;color:var(--ink-4);letter-spacing:.06em}
+.cal-m.on{background:var(--glass-deep);border-color:var(--wave);color:var(--ink);box-shadow:var(--sh-sm),0 0 18px var(--ripple)}
+.daygrp{display:grid;grid-template-columns:56px 1fr;gap:14px;padding:16px 0 6px;border-top:1px solid var(--line-2)}
+.daygrp:first-child{border-top:0}
+.dayno b{display:block;font-family:var(--serif);font-size:26px;line-height:1;font-weight:400;color:var(--ink)}
+.dayno i{display:block;font-style:normal;font-size:8.5px;letter-spacing:.24em;color:var(--ink-4);margin-top:5px}
+.dayph{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px 10px}
+.calp{cursor:pointer;min-width:0}
+.calp .ph{aspect-ratio:1/1;border-radius:9px;overflow:hidden;background:var(--water-2);
+  border:1px solid var(--line);box-shadow:0 4px 12px rgba(44,56,76,.12);transition:transform .3s,box-shadow .3s}
+.calp img{width:100%;height:100%;object-fit:cover;display:block}
+.calp:hover .ph{transform:translateY(-2px);box-shadow:0 10px 22px rgba(44,56,76,.2),0 0 16px var(--ripple)}
+.calp .nt{font-size:10.5px;line-height:1.65;color:var(--ink-2);margin-top:7px;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+.calp .tm{font-size:8.5px;letter-spacing:.14em;color:var(--ink-4);margin-top:2px}
