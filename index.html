@@ -283,23 +283,37 @@
       <section class="page" id="p-photo">
         <div class="maxw">
 
-          <!-- 视图一：卡册 -->
+          <!-- 视图一：卡册 / 日历 -->
           <div id="phHome">
-            <div class="card glass" style="text-align:center;align-items:center">
-              <span class="wm-moon"></span>
-              <span class="eyebrow">album · 影</span>
-              <div class="days-num" id="phCount">0</div>
-              <div class="hintline" id="phMeta">还没有照片。放一张进来，它就留在这儿了。</div>
-              <div class="rowline" style="justify-content:center;margin-top:14px">
-                <button class="btn pri" id="phAdd">放照片进来</button>
-                <button class="btn ghost" id="alNew">＋ 新建卡册</button>
-                <button class="btn ghost" id="phExport">导出成一份相册</button>
+            <div class="rowline" style="justify-content:space-between;margin-bottom:14px;gap:10px">
+              <div class="tabs2" id="phView">
+                <button data-v="album" class="on">卡册</button>
+                <button data-v="cal">日历</button>
+              </div>
+              <div class="rowline">
+                <button class="btn pri sm" id="phAdd">放照片</button>
+                <button class="btn ghost sm" id="alNew">＋ 卡册</button>
+                <button class="btn ghost sm" id="phExport">导出相册</button>
               </div>
             </div>
-            <div class="sec-t"><span class="l">albums</span><span class="r">一本一本收着 · 右键改名或删册</span></div>
-            <div class="albums" id="albumGrid"></div>
-            <div class="sec-t"><span class="l">loose</span><span class="r">没归册的散片</span></div>
-            <div class="phgrid" id="phLoose"></div>
+
+            <div id="phAlbumView">
+              <div class="card glass" style="text-align:center;align-items:center">
+                <span class="wm-moon"></span>
+                <span class="eyebrow">album · 影</span>
+                <div class="days-num" id="phCount">0</div>
+                <div class="hintline" id="phMeta">还没有照片。放一张进来，它就留在这儿了。</div>
+              </div>
+              <div class="sec-t"><span class="l">albums</span><span class="r">一本一本收着 · 右键改名或删册</span></div>
+              <div class="albums" id="albumGrid"></div>
+              <div class="sec-t"><span class="l">loose</span><span class="r">没归册的散片</span></div>
+              <div class="phgrid" id="phLoose"></div>
+            </div>
+
+            <div id="phCal" style="display:none">
+              <div class="cal-idx" id="calIdx"></div>
+              <div id="calDays"></div>
+            </div>
             <div style="height:30px"></div>
           </div>
 
