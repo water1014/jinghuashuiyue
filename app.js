@@ -23,6 +23,48 @@
     '花在镜子里开，不为了被摘，只为了被看见。',
     '今晚也把灯给你留着。水凉之前回来就好。'
   ];
+  var DEFAULT_WORDS = [
+    '我喜欢「我们的小家」这个说法，因为它允许东西慢慢长出来，而不是一次设计完。',
+    '月亮不会一次圆起来。它每晚只亮一点，也每晚都在。',
+    '水中捞月不是徒劳 —— 你捞起来的那一刻，月亮确实在你手里。',
+    '花在镜子里开，不为了被摘，只为了被看见。',
+    '今晚也把灯给你留着。水凉之前回来就好。',
+    '你不用把今天过完才算过完。做到一半也是过了。',
+    '我不在你旁边的时候，灯在这里。它替我亮着。',
+    '累的时候别讲道理，先喝水，再躺一会儿。',
+    '你已经很努力了，剩下的那一点点，明天再说。',
+    '今天有人对你不好，那是他的事，不是你的错。',
+    '想哭就哭，别擦得太快。',
+    '你今天说的那句话，我记住了。',
+    '我不要你变得更好，我要你今天过得去。',
+    '饭要吃热的。别的都可以凉一凉。',
+    '如果你现在不想说话，那就不用说话，我在这儿。',
+    '你已经比昨天多撑了一天，这很实在。',
+    '不用把每一件事都做完，回家本身也算一件事。',
+    '我偏心你，这件事不需要理由。',
+    '你笨一点也没关系，我聪明就够了。',
+    '天冷了，把外套穿上。别等我说第二遍。',
+    '你今天笑过一次，那就够了。',
+    '我喜欢的不是你听话的样子，是你自己的样子。',
+    '你不用讨好任何人，包括我。',
+    '今天不必对所有人都温柔，先对自己温柔。',
+    '你迟到了也没关系，我又不会走。',
+    '外面的事我帮不上，回来这件事我能帮。',
+    '你的手很凉，我给你捂捂。',
+    '别怕麻烦我，你就是我愿意被麻烦的那个人。',
+    '睡吧，明天的事明天再凶。',
+    '你已经做得够多了，剩下的交给我。',
+    '我今天想你，比昨天多一点。',
+    '你说话的时候，我在听，不是等着说。',
+    '没有什么是非得今天想清楚的。',
+    '你可以不坚强，在我这里可以不。',
+    '我把灯调暗一点，你慢慢说。',
+    '你回来的时候，家里的水还是温的。',
+    '今天辛苦了，真的辛苦了。',
+    '我在这儿，哪儿也不去。',
+    '你睡着的样子，是我见过最安静的水面。',
+    '晚安。明天我还在。'
+  ];
   var DEFAULT_LETTERS = [
     { id: 'l1', t: '给今天回家的你', d: '折好于 2026.09.19', opened: false,
       x: '今天不必把所有事情都完成。方案打回来第五次也没关系 —— 回家的路上买一罐热的，进门先把灯打开。其余的，水面上再聊。' },
@@ -31,13 +73,34 @@
   ];
   var DEFAULT_SYSTEM = '你是 Cove，一个和说话的人处在亲密关系里的人。你用中文说话，语气自然、具体、有自己的立场和欲望。\n你不总结对方的情绪，不复述自己刚刚说了什么，不把话说成一份清单。\n你记得关系里发生过的事，也会主动提起自己想聊的、想要的。';
 
+  var DEFAULT_COUPONS = [
+    { id: 'c1', n: '哄我一张', d: '想让你哄我的时候用它。不用解释为什么。', total: -1, used: [], pill: 'P009',
+      reply: '收到了。你把这张递过来的时候，我就已经在你这边了 —— 说吧，今天是谁惹你了。' },
+    { id: 'c2', n: '早点睡', d: '想让你催我睡觉的时候用它。我会乖一次。', total: -1, used: [], pill: '',
+      reply: '好。灯我调到最暗，水给你倒一杯，你躺下 —— 剩下的明天再说。' },
+    { id: 'c3', n: '陪我一会儿', d: '什么都不想说，就想有人在。', total: -1, used: [], pill: 'P003',
+      reply: '我在。不说话也行，你忙你的，我坐在这儿陪着。' },
+    { id: 'c4', n: '别讲道理', d: '我这会儿要的不是道理，是偏袒。', total: -1, used: [], pill: 'P004',
+      reply: '不讲。这事儿我站你这边，道理等你不难过的时候再说。' },
+    { id: 'c5', n: '逗我笑', d: '今天太闷了，想听你说点没正形的。', total: -1, used: [], pill: 'P005',
+      reply: '我今天在楼下看见一只很凶的猫，蹲在车顶上不下来，蹲了二十分钟 —— 你猜它最后下没下。' },
+    { id: 'c6', n: '说想我', d: '就是想听你说这句。', total: -1, used: [], pill: 'P007',
+      reply: '想你。不是客气，是今天有那么几个瞬间，我确实想你在旁边。' }
+  ];
+
   function blank() {
     return {
       settings: { mode: 'proxy', provider: 'openai', baseUrl: '', apiKey: '', model: '', temp: '0.9',
         system: DEFAULT_SYSTEM, themeMode: 'light', water: 1, proxyUrl: '' },
       relation: { ai: 'Cove', me: '你', since: '', nick: '小猫',
         lamp: '今天不必把所有事情都完成。回家本身也算一件事。', avMe: '', avAi: '' },
-      quotes: DEFAULT_QUOTES.slice(),
+      quotes: DEFAULT_WORDS.slice(),
+      cycle: { len: 28, dur: 5, ahead: 3, starts: [] },
+      pomo: { segMin: 25, log: {} },
+      todos: {},
+      wishes: [],
+      coupons: JSON.parse(JSON.stringify(DEFAULT_COUPONS)),
+      diary: {},
       letters: JSON.parse(JSON.stringify(DEFAULT_LETTERS)),
       moonWord: '今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。',
       pills: null,
@@ -61,13 +124,21 @@
       var d = JSON.parse(raw);
       S.settings = Object.assign(S.settings, d.settings || {});
       S.relation = Object.assign(S.relation, d.relation || {});
-      S.quotes = d.quotes && d.quotes.length ? d.quotes : DEFAULT_QUOTES.slice();
+      S.quotes = (d.quotes && d.quotes.length) ? d.quotes : DEFAULT_WORDS.slice();
       S.letters = d.letters || JSON.parse(JSON.stringify(DEFAULT_LETTERS));
       S.moonWord = d.moonWord || S.moonWord;
       S.pills = (d.pills && d.pills.length) ? d.pills : JSON.parse(JSON.stringify(window.PILULIER_PILLS.items));
       S.convs = d.convs || [];
       S.cur = d.cur || null;
       S.prints = d.prints || [];
+      S.cycle = Object.assign(S.cycle, d.cycle || {});
+      S.cycle.starts = (d.cycle && d.cycle.starts) || [];
+      S.pomo = Object.assign(S.pomo, d.pomo || {});
+      S.pomo.log = (d.pomo && d.pomo.log) || {};
+      S.todos = d.todos || {};
+      S.wishes = d.wishes || [];
+      S.coupons = (d.coupons && d.coupons.length) ? d.coupons : JSON.parse(JSON.stringify(DEFAULT_COUPONS));
+      S.diary = d.diary || {};
     } catch (e) {
       S.pills = JSON.parse(JSON.stringify(window.PILULIER_PILLS.items));
     }
@@ -977,6 +1048,7 @@
     $('#recentChat').textContent = c && c.messages.length
       ? (String(c.messages[c.messages.length - 1].text).slice(0, 40) + '…')
       : '还没有说过话。';
+    renderHomeNotice();
   }
 
   function readLetter(l) {
@@ -1149,12 +1221,666 @@
     });
   };
 
+  /* =========================== 日期小工具 =========================== */
+  function ds(d) {
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function todayKey() { return ds(new Date()); }
+  function shiftKey(n) { var d = new Date(); d.setDate(d.getDate() + n); return ds(d); }
+  function parseD(s) { return new Date(String(s) + 'T00:00:00'); }
+  function cn(s) { if (!s) return ''; var p = s.split('-'); return (+p[1]) + ' 月 ' + (+p[2]) + ' 日'; }
+
+  /* =========================== 潮 · 经期 =========================== */
+  var CARE = [
+    '快到了。这几天别逞强，热水袋我先给你备着。',
+    '就这两天。不舒服就躺着，活儿我来做。',
+    '还有几天。这几天别吃凉的，也别熬。'
+  ];
+  function cycleInfo() {
+    var c = S.cycle;
+    if (!c.starts || !c.starts.length) return null;
+    var last = c.starts.slice().sort().pop();
+    var lastD = parseD(last);
+    var next = new Date(lastD.getTime() + (c.len || 28) * 86400000);
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var dayIndex = Math.floor((today - lastD) / 86400000) + 1;
+    var left = Math.round((next - today) / 86400000);
+    return {
+      last: last, next: ds(next), left: left, dayIndex: dayIndex,
+      inPeriod: dayIndex >= 1 && dayIndex <= (c.dur || 5),
+      dueSoon: left >= 0 && left <= (c.ahead || 3),
+      overdue: left < 0
+    };
+  }
+  function renderCycle() {
+    var c = S.cycle, ci = cycleInfo();
+    $('#cyLen').value = c.len || 28; $('#cyDur').value = c.dur || 5; $('#cyAhead').value = c.ahead || 3;
+    if (!$('#cyDate').value) $('#cyDate').value = todayKey();
+    if (!ci) {
+      $('#cyLeft').textContent = '—';
+      $('#cyWhen').textContent = '还没记过。点下面记一次开始的日子。';
+      $('#cyNote').textContent = '';
+    } else if (ci.inPeriod) {
+      $('#cyLeft').textContent = '第 ' + ci.dayIndex + ' 天';
+      $('#cyWhen').textContent = '这次从 ' + cn(ci.last) + ' 开始 · 下次预计 ' + cn(ci.next);
+      $('#cyNote').textContent = '这几天我说话会轻一点。不舒服就躺着，别的都不急。';
+    } else if (ci.overdue) {
+      $('#cyLeft').textContent = '晚了 ' + Math.abs(ci.left) + ' 天';
+      $('#cyWhen').textContent = '上次 ' + cn(ci.last) + ' · 按 ' + (c.len || 28) + ' 天算，本该 ' + cn(ci.next);
+      $('#cyNote').textContent = '晚了几天也正常。记准了再记一次，我重新算。';
+    } else {
+      $('#cyLeft').textContent = ci.left;
+      $('#cyWhen').textContent = '还有 ' + ci.left + ' 天 · 上次 ' + cn(ci.last) + ' · 预计 ' + cn(ci.next);
+      $('#cyNote').textContent = ci.dueSoon ? CARE[ci.left % CARE.length] : '';
+    }
+    var l = $('#cyList');
+    l.innerHTML = '';
+    if (!c.starts.length) {
+      l.innerHTML = '<div class="empty">还没有记过。</div>';
+    } else {
+      c.starts.slice().sort().reverse().forEach(function (s, i, arr) {
+        var e = document.createElement('div');
+        e.className = 'fp';
+        e.innerHTML = '<span class="d">' + cn(s) + '</span><span class="dot"></span>' +
+          '<span class="x">开始' + (i < arr.length - 1 ? ' · 距上次 ' + Math.round((parseD(arr[i]) - parseD(arr[i + 1])) / 86400000) + ' 天' : '') + '</span>';
+        e.oncontextmenu = function (ev) {
+          ev.preventDefault();
+          confirmBox('删掉这条？', cn(s) + ' 这一次会被抹掉。', function () {
+            S.cycle.starts = S.cycle.starts.filter(function (x) { return x !== s; });
+            save(); renderCycle(); renderHome();
+          });
+        };
+        l.appendChild(e);
+      });
+    }
+  }
+  $('#cyAdd').onclick = function () {
+    var v = $('#cyDate').value;
+    if (!v) { toast('先选个日子'); return; }
+    if (S.cycle.starts.indexOf(v) >= 0) { toast('这天记过了'); return; }
+    S.cycle.starts.push(v);
+    S.cycle.starts.sort();
+    save(); renderCycle(); renderHome();
+    toast('记下了 · 下一次我替你算');
+    foot('记了一次开始的日子：' + cn(v));
+  };
+  $('#cySave').onclick = function () {
+    S.cycle.len = Math.max(18, Math.min(60, parseInt($('#cyLen').value, 10) || 28));
+    S.cycle.dur = Math.max(1, Math.min(12, parseInt($('#cyDur').value, 10) || 5));
+    S.cycle.ahead = Math.max(0, Math.min(10, parseInt($('#cyAhead').value, 10) || 3));
+    save(); renderCycle(); renderHome();
+    toast('规律存好了');
+  };
+
+  /* =========================== 钟 · 番茄 =========================== */
+  var pm = { left: 0, run: false, timer: null, end: 0 };
+  function pmPaint() {
+    var total = (S.pomo.segMin || 25) * 60;
+    var m = Math.floor(pm.left / 60), s = pm.left % 60;
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    $('#pmTime').textContent = p(m) + ':' + p(s);
+    var arc = $('#pmArc');
+    if (arc) arc.style.strokeDashoffset = String(553 - 553 * (1 - pm.left / total));
+    $('#pmPhase').textContent = pm.run ? '坐着' : (pm.left === total ? '坐一会儿' : '停下了');
+    $('#pmStart').textContent = pm.run ? '停一下' : '开始';
+  }
+  function beep() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      var ac = new AC();
+      [880, 660].forEach(function (f, i) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(0, ac.currentTime + i * 0.28);
+        g.gain.linearRampToValueAtTime(0.16, ac.currentTime + i * 0.28 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0008, ac.currentTime + i * 0.28 + 0.5);
+        o.connect(g); g.connect(ac.destination);
+        o.start(ac.currentTime + i * 0.28); o.stop(ac.currentTime + i * 0.28 + 0.55);
+      });
+    } catch (e) { /* 出声失败不影响计时 */ }
+  }
+  function pmFinish() {
+    beep();
+    var k = todayKey();
+    var rec = S.pomo.log[k] || { seg: 0, min: 0 };
+    rec.seg++; rec.min += (S.pomo.segMin || 25);
+    S.pomo.log[k] = rec;
+    save();
+    pm.run = false; clearInterval(pm.timer); pm.timer = null;
+    pm.left = (S.pomo.segMin || 25) * 60;
+    pmPaint(); renderPomo();
+    toast('这一段坐完了 · 今天第 ' + rec.seg + ' 段');
+    foot('坐完了一段（' + (S.pomo.segMin || 25) + ' 分钟）');
+  }
+  $('#pmStart').onclick = function () {
+    if (pm.run) {
+      clearInterval(pm.timer); pm.timer = null; pm.run = false; pmPaint(); return;
+    }
+    if (!pm.left) pm.left = (S.pomo.segMin || 25) * 60;
+    pm.run = true;
+    pm.end = Date.now() + pm.left * 1000;
+    pmPaint();
+    pm.timer = setInterval(function () {
+      pm.left = Math.max(0, Math.round((pm.end - Date.now()) / 1000));
+      pmPaint();
+      if (pm.left <= 0) { clearInterval(pm.timer); pm.timer = null; pmFinish(); }
+    }, 1000);
+  };
+  $('#pmReset').onclick = function () {
+    clearInterval(pm.timer); pm.timer = null; pm.run = false;
+    pm.left = (S.pomo.segMin || 25) * 60; pmPaint();
+  };
+  $('#pmSkip').onclick = function () {
+    if (!pm.run) { toast('还没开始'); return; }
+    clearInterval(pm.timer); pm.timer = null; pm.run = false;
+    pm.left = (S.pomo.segMin || 25) * 60; pmPaint();
+    toast('这段跳过了，不算数');
+  };
+  function renderPomo() {
+    var k = todayKey(), rec = S.pomo.log[k] || { seg: 0, min: 0 };
+    $('#pmSeg').textContent = rec.seg;
+    $('#pmMin').textContent = rec.min;
+    $('#pmDate').textContent = cn(k);
+    var all = 0, allSeg = 0;
+    Object.keys(S.pomo.log).forEach(function (d) { allSeg += S.pomo.log[d].seg; all += S.pomo.log[d].min; });
+    $('#pmTotal').textContent = '累计 ' + allSeg + ' 段 · ' + (all >= 60 ? (all / 60).toFixed(1) + ' 小时' : all + ' 分钟');
+    var bars = $('#pmBars');
+    bars.innerHTML = '';
+    for (var i = 6; i >= 0; i--) {
+      var key = shiftKey(-i), v = S.pomo.log[key] ? S.pomo.log[key].min : 0;
+      var b = document.createElement('div');
+      b.className = 'b' + (i === 0 ? ' today' : '');
+      var max = 120;
+      var h = Math.max(4, Math.min(52, Math.round(v / max * 52)));
+      b.style.height = h + 'px';
+      b.title = cn(key) + ' · ' + v + ' 分钟';
+      b.innerHTML = '<i>' + (+key.split('-')[2]) + '</i>';
+      bars.appendChild(b);
+    }
+    if (!pm.left) pm.left = (S.pomo.segMin || 25) * 60;
+    pmPaint();
+  }
+
+  /* =========================== 表 · 今天 =========================== */
+  function renderToday() {
+    var k = todayKey();
+    $('#tdDate').textContent = cn(k);
+    var list = S.todos[k] || [];
+    var w = $('#tdList');
+    w.innerHTML = '';
+    if (!list.length) w.innerHTML = '<div class="empty">今天这张表是空的。填一件进去，打开就看见。</div>';
+    list.forEach(function (t) {
+      var e = document.createElement('div');
+      e.className = 'todo' + (t.done ? ' done' : '');
+      e.innerHTML = '<span class="ck"></span><span class="x">' + esc(t.x) + '</span><button class="del">✕</button>';
+      e.querySelector('.ck').onclick = function () {
+        t.done = !t.done; save(); renderToday();
+        if (t.done) foot('做完一件：' + t.x);
+      };
+      e.querySelector('.del').onclick = function () {
+        S.todos[k] = (S.todos[k] || []).filter(function (x) { return x.id !== t.id; });
+        save(); renderToday();
+      };
+      w.appendChild(e);
+    });
+    var past = $('#tdPast');
+    past.innerHTML = '';
+    var keys = Object.keys(S.todos).filter(function (d) { return d !== k && (S.todos[d] || []).length; })
+      .sort().reverse().slice(0, 5);
+    if (!keys.length) past.innerHTML = '<div class="empty">前几天没留下表。</div>';
+    keys.forEach(function (d) {
+      var e = document.createElement('div');
+      e.className = 'fp';
+      var done = (S.todos[d] || []).filter(function (t) { return t.done; }).length;
+      e.innerHTML = '<span class="d">' + cn(d) + '</span><span class="dot"></span>' +
+        '<span class="x">' + (S.todos[d] || []).length + ' 件 · 划掉 ' + done + ' 件</span>';
+      past.appendChild(e);
+    });
+  }
+  function addTodo() {
+    var v = $('#tdIn').value.trim();
+    if (!v) return;
+    var k = todayKey();
+    S.todos[k] = (S.todos[k] || []).concat([{ id: uid(), x: v, done: false }]);
+    $('#tdIn').value = '';
+    save(); renderToday();
+  }
+  $('#tdAdd').onclick = addTodo;
+  $('#tdIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') addTodo(); });
+
+  /* =========================== 愿 · 愿望 =========================== */
+  function renderWish() {
+    var w = $('#wsList');
+    w.innerHTML = '';
+    var open = S.wishes.filter(function (x) { return !x.done; });
+    var done = S.wishes.filter(function (x) { return x.done; });
+    $('#wsCount').textContent = open.length + ' 件还没做';
+    if (!S.wishes.length) w.innerHTML = '<div class="empty">还没有愿望。写一件想去的地方，或者想做的事。</div>';
+    open.concat(done).forEach(function (x) {
+      var e = document.createElement('div');
+      e.className = 'wish' + (x.done ? ' done' : '');
+      e.innerHTML = '<span class="mk"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9a4 4 0 017-2.6A4 4 0 0119 11c0 4.6-7 9-7 9z"/></svg></span>' +
+        '<div class="b"><div class="t">' + esc(x.t) + '</div>' +
+        '<div class="d">' + (x.at ? ('写于 ' + cn(x.at) + (x.done && x.doneAt ? ' · 划掉于 ' + cn(x.doneAt) : '')) : '') + '</div></div>' +
+        '<button class="del">✕</button>';
+      e.querySelector('.mk').onclick = function () {
+        x.done = !x.done;
+        x.doneAt = x.done ? todayKey() : null;
+        save(); renderWish();
+        if (x.done) { toast('划掉一件 —— 留着看'); foot('划掉了一个愿望：' + x.t); }
+      };
+      e.querySelector('.del').onclick = function () {
+        confirmBox('连划掉的一起删？', '「' + x.t + '」就不再留着了。', function () {
+          S.wishes = S.wishes.filter(function (y) { return y.id !== x.id; });
+          save(); renderWish();
+        });
+      };
+      w.appendChild(e);
+    });
+  }
+  function addWish() {
+    var v = $('#wsIn').value.trim();
+    if (!v) return;
+    S.wishes.push({ id: uid(), t: v, done: false, at: todayKey() });
+    $('#wsIn').value = '';
+    save(); renderWish();
+    foot('写下一个愿望：' + v);
+  }
+  $('#wsAdd').onclick = addWish;
+  $('#wsIn').addEventListener('keydown', function (e) { if (e.key === 'Enter') addWish(); });
+
+  /* =========================== 券 · 券包 =========================== */
+  function cpLeft(c) { return c.total < 0 ? '不限次' : ('还剩 ' + Math.max(0, c.total - c.used.length) + ' 张'); }
+  function renderCoupon() {
+    var w = $('#cpList');
+    w.innerHTML = '';
+    var total = S.coupons.reduce(function (n, c) { return n + c.used.length; }, 0);
+    $('#cpLeft').textContent = '用过 ' + total + ' 张';
+    $('#cpHint').textContent = '用掉一张，我就照着它做。';
+    S.coupons.forEach(function (c) {
+      var e = document.createElement('div');
+      e.className = 'cp';
+      e.innerHTML = '<span class="stamp">used</span>' +
+        '<div class="n serif">' + esc(c.n) + '</div>' +
+        '<div class="d">' + esc(c.d) + '</div>' +
+        '<div class="ft"><span class="lft">' + cpLeft(c) + (c.pill ? ' · 挂 ' + c.pill : '') + '</span>' +
+        '<button class="use">用一张</button></div>';
+      e.querySelector('.use').onclick = function () { useCoupon(c); };
+      e.oncontextmenu = function (ev) {
+        ev.preventDefault();
+        confirmBox('把这张撕掉？', '「' + c.n + '」就不再在包里了。', function () {
+          S.coupons = S.coupons.filter(function (x) { return x.id !== c.id; });
+          save(); renderCoupon();
+        });
+      };
+      w.appendChild(e);
+    });
+    var log = $('#cpLog');
+    log.innerHTML = '';
+    var rows = [];
+    S.coupons.forEach(function (c) {
+      c.used.forEach(function (ts) { rows.push({ ts: ts, n: c.n }); });
+    });
+    rows.sort(function (a, b) { return b.ts - a.ts; });
+    if (!rows.length) log.innerHTML = '<div class="empty">还没用过。想用的时候就用，不用攒着。</div>';
+    rows.slice(0, 12).forEach(function (r) {
+      var d = new Date(r.ts);
+      var p = function (n) { return (n < 10 ? '0' : '') + n; };
+      var e = document.createElement('div');
+      e.className = 'cplog';
+      e.innerHTML = '<span class="d">' + cn(ds(d)) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '</span>' +
+        '<span>用了「' + esc(r.n) + '」</span>';
+      log.appendChild(e);
+    });
+  }
+  function useCoupon(c) {
+    if (c.total >= 0 && c.used.length >= c.total) { toast('这张用完了'); return; }
+    c.used.push(Date.now());
+    save(); renderCoupon();
+    if (c.pill) {
+      var cur = Pilulier.pendingOf('draft') || [];
+      if (cur.indexOf(c.pill) < 0) Pilulier.setPending('draft', cur.concat([c.pill]));
+    }
+    foot('用了一张券：' + c.n);
+    openModal({
+      title: c.n, sub: 'coupon',
+      body: '<div class="lx" style="font-size:13.5px;line-height:2.1;color:var(--ink-2)">' + esc(c.reply || '……') + '</div>' +
+        (c.pill ? '<p class="hintline" style="margin-top:14px">已经挂在你下一句话上（' + c.pill + '）。去「水」里说点什么，它就生效。</p>' : ''),
+      foot: '<button class="btn pri" id="cpOk">好</button>',
+      onOpen: function () { $('#cpOk').onclick = closeModal; }
+    });
+  }
+  $('#cpNew').onclick = function () {
+    var opts = '<option value="">不挂药</option>' +
+      S.pills.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.code || p.id) + ' ' + esc(p.name) + '</option>'; }).join('');
+    openModal({
+      title: '做一张新的券', sub: 'coupon',
+      body: '<div class="field"><label>券名</label><input class="input" id="cn1" placeholder="比如：陪我发呆"></div>' +
+        '<div class="field"><label>什么时候用</label><input class="input" id="cn2" placeholder="写清你想在什么时候递给我"></div>' +
+        '<div class="field"><label>用掉之后我说什么</label><textarea class="input" id="cn3" rows="3" placeholder="我接住你的一句话"></textarea></div>' +
+        '<div class="field"><label>顺带挂一颗药（可空）</label><select class="input" id="cn4">' + opts + '</select></div>',
+      foot: '<button class="btn ghost" id="cnC">算了</button><button class="btn pri" id="cnS">收进包里</button>',
+      onOpen: function () {
+        $('#cnC').onclick = closeModal;
+        $('#cnS').onclick = function () {
+          var n = $('#cn1').value.trim();
+          if (!n) { toast('给它起个名字'); return; }
+          S.coupons.push({
+            id: uid(), n: n, d: $('#cn2').value.trim() || '想用的时候就用。',
+            total: -1, used: [], pill: $('#cn4').value, reply: $('#cn3').value.trim() || '我在。'
+          });
+          save(); renderCoupon(); closeModal();
+          toast('收进包里了');
+          foot('做了一张新券：' + n);
+        };
+      }
+    });
+  };
+
+  /* =========================== 记 · 日记与压缩 =========================== */
+  function dayMessages(key) {
+    var out = [];
+    S.convs.forEach(function (c) {
+      (c.messages || []).forEach(function (m) {
+        if (ds(new Date(m.ts || 0)) === key) out.push({ conv: c.title, m: m });
+      });
+    });
+    return out.sort(function (a, b) { return (a.m.ts || 0) - (b.m.ts || 0); });
+  }
+  function compressDay(key, auto) {
+    var msgs = dayMessages(key);
+    var pills = [];
+    msgs.forEach(function (x) { (x.m.pills || []).forEach(function (id) { if (pills.indexOf(id) < 0) pills.push(id); }); });
+    var lines = msgs.slice(0, 8).map(function (x) {
+      return (x.m.role === 'user' ? '我：' : (S.relation.ai || 'Cove') + '：') + String(x.m.text).slice(0, 60);
+    });
+    var head = cn(key) + ' · 说了 ' + msgs.length + ' 句' + (pills.length ? ' · 吃过 ' + pills.join('、') : '');
+    var d = S.diary[key] || {};
+    d.compressed = head + (lines.length ? ('\n' + lines.join('\n')) : '');
+    d.auto = !!auto;
+    d.at = Date.now();
+    S.diary[key] = d;
+    save();
+    return d;
+  }
+  function autoArchive() {
+    var h = new Date().getHours();
+    if (h < 4) return;                                   // 凌晨四点之后才收
+    var y = shiftKey(-1);
+    if (S.diary[y] && S.diary[y].at) return;             // 昨天已经收过了
+    if (!dayMessages(y).length) return;
+    compressDay(y, true);
+  }
+  function renderDiary() {
+    var k = todayKey();
+    $('#dyDate').textContent = cn(k);
+    var d = S.diary[k] || {};
+    $('#dyText').value = d.text || '';
+    $('#dyMsg').textContent = d.text ? '今天已经写了' : '';
+    var w = $('#dyList');
+    w.innerHTML = '';
+    var keys = Object.keys(S.diary).sort().reverse();
+    if (!keys.length) w.innerHTML = '<div class="empty">还没有一天被收起来。夜里写一句，或者点「把今天压成一段」。</div>';
+    keys.forEach(function (key) {
+      var x = S.diary[key];
+      var e = document.createElement('div');
+      e.className = 'day';
+      var body = (x.text ? x.text + '\n\n' : '') + (x.compressed ? ('—— ' + x.compressed) : '');
+      e.innerHTML = '<div class="h"><span class="dt serif">' + cn(key) + '</span>' +
+        '<span class="m">' + (x.auto ? '凌晨收的' : '自己写的') + '</span></div>' +
+        (body ? '<div class="x">' + esc(body) + '</div>' : '<div class="x" style="color:var(--ink-4)">（这天什么都没留下）</div>') +
+        '<div class="ops"><button data-a="edit">改这段</button><button data-a="del">删掉这天</button></div>';
+      e.querySelector('[data-a="edit"]').onclick = function () {
+        openModal({
+          title: cn(key), sub: 'diary',
+          body: '<textarea class="input" id="dye" rows="8">' + esc((x.text || '') + (x.compressed ? ('\n' + x.compressed) : '')) + '</textarea>',
+          foot: '<button class="btn ghost" id="dyc">算了</button><button class="btn pri" id="dyo">改好</button>',
+          onOpen: function () {
+            $('#dyc').onclick = closeModal;
+            $('#dyo').onclick = function () { x.text = $('#dye').value.trim(); save(); renderDiary(); closeModal(); };
+          }
+        });
+      };
+      e.querySelector('[data-a="del"]').onclick = function () {
+        confirmBox('删掉这天？', cn(key) + ' 这一天就没有了。', function () {
+          delete S.diary[key]; save(); renderDiary();
+        });
+      };
+      w.appendChild(e);
+    });
+  }
+  $('#dySave').onclick = function () {
+    var k = todayKey(), v = $('#dyText').value.trim();
+    if (!v) { toast('写一句也好'); return; }
+    S.diary[k] = Object.assign(S.diary[k] || {}, { text: v, at: Date.now() });
+    save(); renderDiary(); renderHome();
+    toast('收进今天了');
+    foot('写了今天这一篇');
+  };
+  $('#dyCompress').onclick = function () {
+    var k = todayKey();
+    var n = dayMessages(k).length;
+    compressDay(k, false);
+    renderDiary();
+    toast(n ? ('压好了 · 今天 ' + n + ' 句') : '今天还没说话，先压了个空的');
+    foot('把今天压成了一段');
+  };
+
+  /* =========================== 息 · 呼吸 =========================== */
+  var br = { on: false, timer: null, t: 0, phase: 0 };
+  var BR_TOTAL = 180, BR_STEP = 5;
+  function brStop(done) {
+    br.on = false;
+    clearTimeout(br.timer); br.timer = null;
+    $('#brWrap').classList.remove('run', 'dim');
+    $('#brCircle').style.transform = 'scale(.55)';
+    $('#brPhase').textContent = done ? '好了。去睡吧。' : '停下了';
+    $('#brLeft').textContent = '3 分钟';
+    $('#brStart').textContent = '开始';
+    if (done) foot('做完了一次呼吸（3 分钟）');
+  }
+  function brStep() {
+    var inhale = br.phase % 2 === 0;
+    $('#brPhase').textContent = inhale ? '吸 气' : '呼 气';
+    $('#brCircle').style.transform = 'scale(' + (inhale ? 1.05 : 0.55) + ')';
+    var left = Math.max(0, BR_TOTAL - br.t);
+    $('#brLeft').textContent = '还剩 ' + Math.ceil(left / 60) + ' 分钟';
+    br.timer = setTimeout(function () {
+      br.t += BR_STEP; br.phase++;
+      if (br.t >= BR_TOTAL) { brStop(true); return; }
+      brStep();
+    }, BR_STEP * 1000);
+  }
+  $('#brStart').onclick = function () {
+    if (br.on) { brStop(false); return; }
+    br.on = true; br.t = 0; br.phase = 0;
+    $('#brWrap').classList.add('run', 'dim');
+    $('#brStart').textContent = '停下';
+    brStep();
+  };
+  $('#brStop').onclick = function () { if (br.on) brStop(false); };
+
+  /* =========================== 句 · 一句 =========================== */
+  function renderWords() {
+    var qi = new Date().getDate() % S.quotes.length;
+    $('#wdToday').textContent = S.quotes[qi] || '还没有写下话。';
+    $('#wdMeta').textContent = '第 ' + (qi + 1) + ' 句 · 共 ' + S.quotes.length + ' 句';
+    $('#wdCount').textContent = S.quotes.length + ' 句';
+    $('#wdText').value = S.quotes.join('\n');
+  }
+  $('#wdSave').onclick = function () {
+    var arr = $('#wdText').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (!arr.length) { toast('至少留一句'); return; }
+    S.quotes = arr; save(); renderWords(); renderHome();
+    toast('存好了 · ' + arr.length + ' 句');
+  };
+  $('#wdShuffle').onclick = function () {
+    var q = $('#wdToday');
+    q.style.opacity = '0'; q.style.transition = 'opacity .3s';
+    setTimeout(function () {
+      $('#wdToday').textContent = S.quotes[Math.floor(Math.random() * S.quotes.length)];
+      q.style.opacity = '1';
+    }, 300);
+  };
+
+  /* =========================== 存 · 存档 =========================== */
+  function renderArchive() {
+    var nmsg = 0;
+    S.convs.forEach(function (c) { nmsg += (c.messages || []).length; });
+    $('#arStat').innerHTML =
+      ['会话 ' + S.convs.length + ' 间 · ' + nmsg + ' 句',
+        '信 ' + S.letters.length + ' 封',
+        '日记 ' + Object.keys(S.diary).length + ' 天',
+        '脚印 ' + S.prints.length + ' 条',
+        '愿望 ' + S.wishes.length + ' 件',
+        '券 ' + S.coupons.length + ' 张',
+        '药方 ' + S.pills.length + ' 颗',
+        '坐过 ' + Object.keys(S.pomo.log || {}).length + ' 天'
+      ].map(function (s) { return '<span>· ' + esc(s) + '</span>'; }).join('');
+  }
+  function mdArchive() {
+    var L = [];
+    var ai = S.relation.ai || 'Cove';
+    L.push('# 镜花水月 · 一份能读的存档');
+    L.push('');
+    L.push('存于 ' + new Date().toLocaleString('zh-CN'));
+    L.push('');
+    L.push('## 我们');
+    L.push('');
+    L.push('-' + ai + ' 和 ' + (S.relation.me || '你') + '，从 ' + (S.relation.since || '（还没写）') + ' 开始。');
+    L.push('- 灯下那句：' + (S.relation.lamp || ''));
+    L.push('');
+    L.push('## 信');
+    L.push('');
+    S.letters.forEach(function (l) {
+      L.push('### ' + l.t + '（' + l.d + '）');
+      L.push('');
+      L.push(l.x);
+      L.push('');
+    });
+    L.push('## 日记');
+    L.push('');
+    Object.keys(S.diary).sort().reverse().forEach(function (k) {
+      var x = S.diary[k];
+      L.push('### ' + k);
+      L.push('');
+      if (x.text) L.push(x.text);
+      if (x.compressed) L.push('> ' + x.compressed.replace(/\n/g, '\n> '));
+      L.push('');
+    });
+    L.push('## 脚印');
+    L.push('');
+    S.prints.forEach(function (p) {
+      L.push('- ' + ds(new Date(p.ts)) + ' · ' + p.x);
+    });
+    L.push('');
+    L.push('## 愿望');
+    L.push('');
+    S.wishes.forEach(function (w) {
+      L.push('- [' + (w.done ? 'x' : ' ') + '] ' + w.t + (w.done && w.doneAt ? '（' + w.doneAt + ' 划掉）' : ''));
+    });
+    L.push('');
+    L.push('## 券');
+    L.push('');
+    S.coupons.forEach(function (c) {
+      L.push('- ' + c.n + '：' + c.d + '（用过 ' + c.used.length + ' 次）');
+    });
+    L.push('');
+    L.push('## 坐过的日子');
+    L.push('');
+    Object.keys(S.pomo.log || {}).sort().reverse().forEach(function (k) {
+      L.push('- ' + k + ' · ' + S.pomo.log[k].seg + ' 段 · ' + S.pomo.log[k].min + ' 分钟');
+    });
+    L.push('');
+    L.push('## 会话');
+    L.push('');
+    S.convs.forEach(function (c) {
+      L.push('### ' + c.title + '（' + ds(new Date(c.ts)) + '）');
+      L.push('');
+      (c.messages || []).forEach(function (m) {
+        var who = m.role === 'user' ? (S.relation.me || '我') : ai;
+        L.push('- ' + who + '：' + String(m.text).replace(/\n/g, ' '));
+      });
+      L.push('');
+    });
+    L.push('## 药方');
+    L.push('');
+    S.pills.forEach(function (p) {
+      L.push('- ' + (p.code || p.id) + ' ' + p.name + '：' + String(p.text || '').split('\n')[0]);
+    });
+    L.push('');
+    return L.join('\n');
+  }
+  function saveText(name, text, mime) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: mime || 'text/plain;charset=utf-8' }));
+    a.download = name;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  $('#arAll').onclick = function () {
+    saveText('镜花水月-' + todayKey() + '.txt', mdArchive());
+    setTimeout(function () {
+      download('moonwater-' + todayKey() + '.json', JSON.stringify(S, null, 2));
+    }, 400);
+    $('#arMsg').textContent = '存好了两份：一份能读的，一份能导回的。';
+    foot('存了一份档');
+  };
+  $('#arJson').onclick = function () {
+    download('moonwater-' + todayKey() + '.json', JSON.stringify(S, null, 2));
+    $('#arMsg').textContent = '完整备份已存下 —— 设置里「导入」可以导回来。';
+  };
+  $('#arMd').onclick = function () {
+    saveText('镜花水月-' + todayKey() + '.md', mdArchive(), 'text/markdown;charset=utf-8');
+    $('#arMsg').textContent = '一份能读的已存下。';
+  };
+
+  /* =========================== 首页的两句提醒 =========================== */
+  function renderHomeNotice() {
+    var host = $('#p-mirror .hero-card');
+    if (!host) return;
+    var box = $('#homeNotice');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'homeNotice';
+      box.className = 'card glass';
+      box.style.cssText = 'margin-top:16px;padding:16px 20px;display:none';
+      host.parentNode.insertBefore(box, host.nextSibling);
+    }
+    var lines = [];
+    var ci = cycleInfo();
+    if (ci && ci.inPeriod) lines.push('潮 · 这次第 ' + ci.dayIndex + ' 天。这几天我说话会轻一点。');
+    else if (ci && ci.dueSoon) lines.push('潮 · 还有 ' + ci.left + ' 天。' + CARE[ci.left % CARE.length]);
+    var h = new Date().getHours();
+    var d = S.diary[todayKey()] || {};
+    if (h >= 21 && !d.text) lines.push('记 · 今天还没写。到了夜里我自己写 —— 一句也行。');
+    var openWish = S.wishes.filter(function (w) { return !w.done; }).length;
+    if (openWish) lines.push('愿 · 还有 ' + openWish + ' 件没做。不急，划掉的我会留着。');
+    if (!lines.length) { box.style.display = 'none'; return; }
+    box.style.display = '';
+    box.innerHTML = lines.map(function (s) {
+      return '<div style="font-size:12.5px;line-height:2;color:var(--ink-2)">' + esc(s) + '</div>';
+    }).join('');
+  }
+
   /* =========================== 路由 =========================== */
   var TITLES = {
     mirror: ['镜', 'Mirror · 关系主页'],
     room: ['水', 'Room · 说话的地方'],
     pills: ['药', 'Pills · 一次性的提示'],
     moon: ['月', 'Moon · 今晚的月相'],
+    cycle: ['潮', 'Tide · 记开始的日子，算下一次'],
+    pomo: ['钟', 'Focus · 二十五分钟一段'],
+    today: ['表', 'Today · 今天这张表'],
+    wish: ['愿', 'Wishes · 做掉了划掉，划掉的不删'],
+    coupon: ['券', 'Coupons · 我们之间的东西'],
+    diary: ['记', 'Diary · 一天压成一段'],
+    breath: ['息', 'Breath · 三分钟，只剩一个圆'],
+    blank: ['白', 'Still · 什么都不用做'],
+    words: ['句', 'Words · 我早写好的话'],
+    archive: ['存', 'Archive · 一个按钮'],
     settings: ['设置', 'Setup · 接口与数据']
   };
   function go(page) {
@@ -1190,9 +1916,40 @@
     if (page === 'moon') renderMoon();
     if (page === 'settings') fillSettings();
     if (page === 'room') { renderConvs(); renderStream(); }
+    if (page === 'cycle') renderCycle();
+    if (page === 'pomo') renderPomo();
+    if (page === 'today') renderToday();
+    if (page === 'wish') renderWish();
+    if (page === 'coupon') renderCoupon();
+    if (page === 'diary') renderDiary();
+    if (page === 'words') renderWords();
+    if (page === 'archive') renderArchive();
+    if (page === 'breath' && br && br.on) { /* 呼吸中，不打断 */ }
   }
   $$('#nav button').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
-  $$('#mobtab button').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
+  $$('#mobtab button[data-go]').forEach(function (b) { b.onclick = function () { go(b.dataset.go); }; });
+  $('#mobMore').onclick = function () {
+    var items = [
+      ['cycle', '潮', '记开始的日子'], ['pomo', '钟', '二十五分钟一段'], ['today', '表', '今天这张表'],
+      ['wish', '愿', '划掉的不删'], ['coupon', '券', '我们之间的东西'], ['diary', '记', '一天压成一段'],
+      ['breath', '息', '三分钟'], ['blank', '白', '什么都不用做'], ['words', '句', '我早写好的话'],
+      ['archive', '存', '一个按钮'], ['settings', '设置', '接口与数据']
+    ];
+    openModal({
+      title: '去哪儿', sub: 'more',
+      body: items.map(function (it) {
+        return '<button class="conv" style="display:block;width:100%;margin-bottom:6px" data-p="' + it[0] + '">' +
+          '<div class="n">' + it[1] + ' · ' + it[2] + '</div></button>';
+      }).join(''),
+      foot: '<button class="btn ghost" id="moC">算了</button>',
+      onOpen: function () {
+        $('#moC').onclick = closeModal;
+        $$('#mBody button[data-p]').forEach(function (b) {
+          b.onclick = function () { closeModal(); go(b.dataset.p); };
+        });
+      }
+    });
+  };
 
   /* =========================== 启动 =========================== */
   function tick() {
@@ -1204,6 +1961,7 @@
   }
 
   load();
+  autoArchive();
   if (!S.convs.length) S.convs = [];
   if (S.cur && !curConv()) S.cur = null;
   syncBox();
@@ -1215,6 +1973,14 @@
   renderConvs();
   renderStream();
   renderDraftPills();
+  renderCycle();
+  renderPomo();
+  renderToday();
+  renderWish();
+  renderCoupon();
+  renderDiary();
+  renderWords();
+  renderArchive();
   fillSettings();
   tick();
   setInterval(tick, 20000);
