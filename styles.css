@@ -695,3 +695,30 @@ html[data-theme="dark"] .phcard{background:linear-gradient(170deg,rgba(52,66,96,
   .phcard{-webkit-box-reflect:none}
   .lb-nav{width:38px;height:38px}
 }
+
+/* 卡册 */
+.albums{display:grid;grid-template-columns:repeat(auto-fill,minmax(272px,1fr));gap:18px}
+.alb{position:relative;padding:18px;border-radius:22px;cursor:pointer;
+  background:linear-gradient(158deg,var(--glass-deep),var(--glass));
+  backdrop-filter:blur(22px);border:1px solid var(--line);box-shadow:var(--sh-sm),var(--in-hi);
+  transition:transform .3s,box-shadow .3s}
+.alb:hover{transform:translateY(-3px);box-shadow:var(--sh),0 0 30px var(--ripple)}
+.alb .h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.alb .n{font-size:20px;letter-spacing:.08em}
+.alb .d{font-size:11.5px;color:var(--ink-3);margin-top:5px;line-height:1.7}
+.alb .c{font-size:10px;letter-spacing:.14em;color:var(--ink-4);white-space:nowrap;flex:0 0 auto}
+.alb .strip{display:flex;gap:7px;margin-top:14px;height:66px}
+.alb .strip img{flex:1;min-width:0;height:66px;object-fit:cover;border-radius:9px;background:var(--water-2);
+  box-shadow:0 4px 10px rgba(44,56,76,.12)}
+.alb .strip .ph-blank,.alb .strip .strip-empty{flex:1;height:66px;border-radius:9px;background:var(--glass-2);
+  border:1px dashed var(--line-2);display:grid;place-items:center;font-size:10px;color:var(--ink-4)}
+.alb .strip .strip-empty{flex:1 1 100%}
+.alb .ft{display:flex;justify-content:space-between;margin-top:12px;font-size:9.5px;letter-spacing:.12em;color:var(--ink-4)}
+.al-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:4px 2px 16px}
+.al-t{flex:1;min-width:140px}
+.al-t b{display:block;font-size:24px;letter-spacing:.08em}
+.al-t i{display:block;font-style:normal;font-size:10.5px;letter-spacing:.14em;color:var(--ink-3);margin-top:4px}
+/* 上传预览 */
+.up-strip{display:flex;gap:8px;margin:10px 0 16px;overflow-x:auto;padding-bottom:4px}
+.up-strip img{width:76px;height:76px;object-fit:cover;border-radius:10px;flex:0 0 auto;
+  border:1px solid var(--line);box-shadow:0 4px 12px rgba(44,56,76,.14)}
