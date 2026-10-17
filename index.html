@@ -279,22 +279,47 @@
         </div>
       </section>
 
-      <!-- ---------------- 影 · 相册 ---------------- -->
+      <!-- ---------------- 影 · 卡册 ---------------- -->
       <section class="page" id="p-photo">
         <div class="maxw">
-          <div class="card glass" style="text-align:center;align-items:center">
-            <span class="wm-moon"></span>
-            <span class="eyebrow">album · 影</span>
-            <div class="days-num" id="phCount">0</div>
-            <div class="hintline" id="phMeta">还没有照片。放一张进来，它就留在这儿了。</div>
-            <div class="rowline" style="justify-content:center;margin-top:14px">
-              <button class="btn pri" id="phAdd">放几张进来</button>
-              <button class="btn ghost" id="phExport">导出成一份相册</button>
+
+          <!-- 视图一：卡册 -->
+          <div id="phHome">
+            <div class="card glass" style="text-align:center;align-items:center">
+              <span class="wm-moon"></span>
+              <span class="eyebrow">album · 影</span>
+              <div class="days-num" id="phCount">0</div>
+              <div class="hintline" id="phMeta">还没有照片。放一张进来，它就留在这儿了。</div>
+              <div class="rowline" style="justify-content:center;margin-top:14px">
+                <button class="btn pri" id="phAdd">放照片进来</button>
+                <button class="btn ghost" id="alNew">＋ 新建卡册</button>
+                <button class="btn ghost" id="phExport">导出成一份相册</button>
+              </div>
             </div>
+            <div class="sec-t"><span class="l">albums</span><span class="r">一本一本收着 · 右键改名或删册</span></div>
+            <div class="albums" id="albumGrid"></div>
+            <div class="sec-t"><span class="l">loose</span><span class="r">没归册的散片</span></div>
+            <div class="phgrid" id="phLoose"></div>
+            <div style="height:30px"></div>
           </div>
-          <div class="sec-t"><span class="l">photos</span><span class="r">点开看大图 · 右键改背面的话 / 删掉</span></div>
-          <div class="phgrid" id="phGrid"></div>
-          <div style="height:30px"></div>
+
+          <!-- 视图二：某一本里 -->
+          <div id="phOne" style="display:none">
+            <div class="al-head">
+              <button class="btn ghost sm" id="phBack">‹ 卡册</button>
+              <div class="al-t">
+                <b class="serif" id="alName"></b>
+                <i id="alDesc"></i>
+              </div>
+              <div class="rowline">
+                <button class="btn ghost sm" id="phAddHere">往这本里放照片</button>
+                <button class="btn ghost sm" id="alRename">改名</button>
+                <button class="btn ghost sm" id="alDel">删册</button>
+              </div>
+            </div>
+            <div class="phgrid" id="phGrid"></div>
+            <div style="height:30px"></div>
+          </div>
         </div>
       </section>
 
@@ -641,6 +666,30 @@
 </nav>
 
 <!-- 弹层 -->
+<div class="veil" id="upVeil">
+  <div class="mask" id="upMask"></div>
+  <div class="modal" id="upModal">
+    <button class="close" id="upX">✕</button>
+    <h2>放进来</h2>
+    <div class="sub">photo · 写一句，或者留空</div>
+    <div class="up-strip" id="upStrip"></div>
+    <div class="field"><label>这句话写什么（可空）</label>
+      <input class="input" id="upNote" placeholder="比如：那天水边的风很大">
+    </div>
+    <div class="field"><label>放进哪本</label>
+      <select class="input" id="upAlbum"></select>
+    </div>
+    <div class="rowline" style="margin-top:6px">
+      <label class="switch" id="upAi"><span class="sw"><i></i></span>让小机看着照片写一句</label>
+    </div>
+    <p class="hintline" id="upTip" style="margin-top:8px"></p>
+    <div class="foot">
+      <button class="btn ghost" id="upCancel">算了</button>
+      <button class="btn pri" id="upOk">放进相册</button>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox">
   <button class="lb-x" id="lbX">✕</button>
   <button class="lb-nav lb-prev" id="lbPrev">‹</button>
@@ -649,6 +698,7 @@
   <div class="lb-cap">
     <div class="lb-note" id="lbNote"></div>
     <div class="lb-meta" id="lbMeta"></div>
+    <button class="btn ghost sm" id="lbAi" style="margin-top:10px;color:#E9EDF4;border-color:rgba(255,255,255,.28)">让小机写一句</button>
   </div>
 </div>
 
