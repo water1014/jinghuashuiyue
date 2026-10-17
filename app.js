@@ -91,7 +91,11 @@
   function blank() {
     return {
       settings: { mode: 'proxy', provider: 'openai', baseUrl: '', apiKey: '', model: '', temp: '0.9',
-        system: DEFAULT_SYSTEM, themeMode: 'light', water: 1, proxyUrl: '' },
+        system: DEFAULT_SYSTEM, themeMode: 'light', water: 1, proxyUrl: '', preset: 'deepseek',
+        imgBase: '', imgKey: '', imgModel: '', imgSize: '1024x1024',
+        voiceEngine: 'system', mmKey: '', mmGroup: '', mmVoice: 'female-shaonv',
+        mmModel: 'speech-02-hd', mmSpeed: '1.0', mmBase: 'https://api.minimax.chat/v1/t2a_v2', autoRead: false,
+        memOn: true, wallpaper: 'mist', font: 'song', fs: 100, radius: 'soft', motion: true, wallCustom: false },
       relation: { ai: 'Cove', me: '你', since: '', nick: '小猫',
         lamp: '今天不必把所有事情都完成。回家本身也算一件事。', avMe: '', avAi: '' },
       quotes: DEFAULT_WORDS.slice(),
@@ -101,6 +105,8 @@
       wishes: [],
       coupons: JSON.parse(JSON.stringify(DEFAULT_COUPONS)),
       diary: {},
+      memories: [],
+      usage: [],
       photos: [],
       albums: [],
       letters: JSON.parse(JSON.stringify(DEFAULT_LETTERS)),
@@ -141,6 +147,8 @@
       S.wishes = d.wishes || [];
       S.coupons = (d.coupons && d.coupons.length) ? d.coupons : JSON.parse(JSON.stringify(DEFAULT_COUPONS));
       S.diary = d.diary || {};
+      S.memories = d.memories || [];
+      S.usage = d.usage || [];
       S.photos = d.photos || [];
       S.albums = d.albums || [];
     } catch (e) {
@@ -516,10 +524,22 @@
     if (hasProxy()) el.textContent = '接口 · 代理' + (s.model ? ' · ' + s.model : '');
     else if (s.mode === 'proxy' && IS_STATIC) el.textContent = '接口 · 静态站点请用直连';
     else el.textContent = apiReady() ? '接口 · 直连 ' + (s.model || '') : '接口 · 直连未填全';
+    var td = usageToday();
+    if (td && (td.i + td.o)) el.textContent += ' · 今日 ' + fmtTok(td.i + td.o);
+  }
+
+  /** 记忆 + 人设拼成 system */
+  function systemPrompt() {
+    var base = S.settings.system || '';
+    if (S.settings.memOn === false || !S.memories || !S.memories.length) return base;
+    var lines = S.memories.filter(function (m) { return m.on !== false; }).map(function (m) { return '- ' + m.text; });
+    if (!lines.length) return base;
+    return base + '\n\n[记住的事]\n' + lines.join('\n') +
+      '\n这些是长期记得的事。不要复述它们，只在合适的时候自然用上。';
   }
 
   /** 流式请求。onDelta(文本片段) → 每段增量；返回 Promise<{text, mock}> */
-  function chat(messages, onDelta) {
+  function chatRaw(messages, onDelta) {
     var s = S.settings;
     abort = new AbortController();
     var signal = abort.signal;
@@ -560,7 +580,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: messages, model: s.model, temperature: parseFloat(s.temp || '0.9'),
-          system: s.system, provider: s.provider, baseUrl: s.baseUrl, apiKey: s.apiKey
+          system: systemPrompt(), provider: s.provider, baseUrl: s.baseUrl, apiKey: s.apiKey
         })
       }).then(function (res) {
         var mock = false;
@@ -578,7 +598,7 @@
 
     // 直连
     if (s.provider === 'anthropic') {
-      var sys = s.system;
+      var sys = systemPrompt();
       return fetch(s.baseUrl.replace(/\/$/, '') + '/messages', {
         method: 'POST', signal: signal,
         headers: {
@@ -599,7 +619,7 @@
       });
     }
     var url = s.baseUrl.replace(/\/$/, '') + '/chat/completions';
-    var msgs = [{ role: 'system', content: s.system }].concat(messages);
+    var msgs = [{ role: 'system', content: systemPrompt() }].concat(messages);
     return fetch(url, {
       method: 'POST', signal: signal,
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.apiKey },
@@ -612,6 +632,27 @@
         return (j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content) || '';
       }).then(function () { return { mock: false }; });
     });
+  }
+
+  /** 统一的 chat：累计输出，记一笔用量 */
+  function chat(messages, onDelta) {
+    var out = '';
+    var inTok = estTok(systemPrompt());
+    (messages || []).forEach(function (m) {
+      if (typeof m.content === 'string') inTok += estTok(m.content);
+      else if (Array.isArray(m.content)) {
+        m.content.forEach(function (c) {
+          if (c && c.type === 'text') inTok += estTok(c.text);
+          else if (c && c.type === 'image_url') inTok += 800;      // 一张图粗估
+          else if (c && c.type === 'image') inTok += 800;
+        });
+      }
+    });
+    return chatRaw(messages, function (t) { out += t; if (onDelta) onDelta(t); })
+      .then(function (r) {
+        recUsage('chat', inTok, estTok(out));
+        return r;
+      });
   }
 
   /* =========================== 会话与聊天 =========================== */
@@ -788,7 +829,16 @@
       var rg = document.createElement('button');
       rg.textContent = '↻ 重说';
       rg.onclick = function () { regenerateFrom(m); };
-      ops2.appendChild(cp); ops2.appendChild(rg);
+      var rd = document.createElement('button');
+      rd.dataset.a = 'read';
+      rd.textContent = '读';
+      rd.onclick = function () {
+        if (rd.classList.contains('on')) { try { speechSynthesis.cancel(); } catch (e) {} if (curAudio) curAudio.pause(); rd.classList.remove('on'); return; }
+        rd.classList.add('on');
+        speak(m.text, rd);
+        setTimeout(function () { rd.classList.remove('on'); }, Math.min(60000, m.text.length * 180));
+      };
+      ops2.appendChild(cp); ops2.appendChild(rd); ops2.appendChild(rg);
       wrap.appendChild(ops2);
     }
     return wrap;
@@ -913,6 +963,7 @@
       renderConvs();
       renderStream();
       renderHome();
+      if (S.settings.autoRead && buf.trim()) speak(buf);
       // 注入卡要在重绘之后放，否则会被清掉
       if (ids.length) {
         showShot(ids);
@@ -1143,10 +1194,636 @@
     });
   };
 
+  /* =========================== 用量 =========================== */
+  function estTok(str) {
+    if (!str) return 0;
+    var t = String(str);
+    var cjk = (t.match(/[\u4e00-\u9fff\u3040-\u30ff]/g) || []).length;
+    return Math.round(cjk + (t.length - cjk) / 3.6);
+  }
+  function usageToday() {
+    var k = todayKey(), o = { i: 0, o: 0, n: 0 };
+    (S.usage || []).forEach(function (u) {
+      if (ds(new Date(u.ts)) !== k) return;
+      o.i += u.i || 0; o.o += u.o || 0; o.n++;
+    });
+    return o;
+  }
+  function fmtTok(n) {
+    n = n || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return String(n);
+  }
+  function recUsage(kind, i, o, note) {
+    S.usage.push({ ts: Date.now(), k: kind, i: Math.max(0, Math.round(i || 0)),
+      o: Math.max(0, Math.round(o || 0)), m: (S.settings.model || '').slice(0, 40), x: note || '' });
+    if (S.usage.length > 800) S.usage = S.usage.slice(-800);
+    save();
+    apiState();
+    if ($('#p-settings') && $('#p-settings').classList.contains('on')) renderUsage();
+  }
+  function renderUsage() {
+    if (!$('#useBars')) return;
+    var k = todayKey(), t = { i: 0, o: 0, n: 0 };
+    var byModel = {};
+    var monthAgo = Date.now() - 30 * 86400000;
+    S.usage.forEach(function (u) {
+      if (ds(new Date(u.ts)) === k) { t.i += u.i; t.o += u.o; t.n++; }
+      if (u.ts >= monthAgo) {
+        var m = u.m || '（当前模型）';
+        byModel[m] = byModel[m] || { i: 0, o: 0, n: 0 };
+        byModel[m].i += u.i; byModel[m].o += u.o; byModel[m].n++;
+      }
+    });
+    $('#useToday').textContent = cn(k);
+    $('#useIn').textContent = fmtTok(t.i);
+    $('#useOut').textContent = fmtTok(t.o);
+    $('#useAll').textContent = fmtTok(t.i + t.o);
+    $('#useReq').textContent = t.n;
+
+    var bars = $('#useBars');
+    bars.innerHTML = '';
+    var max = 1;
+    var days = [];
+    for (var d = 6; d >= 0; d--) {
+      var key = shiftKey(-d), sum = 0;
+      S.usage.forEach(function (u) { if (ds(new Date(u.ts)) === key) sum += (u.i + u.o); });
+      days.push({ key: key, sum: sum });
+      max = Math.max(max, sum);
+    }
+    days.forEach(function (x, idx) {
+      var b = document.createElement('div');
+      b.className = 'b' + (idx === 6 ? ' today' : '');
+      b.style.height = Math.max(4, Math.round(x.sum / max * 62)) + 'px';
+      b.title = cn(x.key) + ' · ' + fmtTok(x.sum) + ' tokens';
+      b.innerHTML = '<i>' + (+x.key.split('-')[2]) + '</i>';
+      bars.appendChild(b);
+    });
+
+    var models = Object.keys(byModel).sort(function (a, b) {
+      return (byModel[b].i + byModel[b].o) - (byModel[a].i + byModel[a].o);
+    }).slice(0, 5);
+    var mmax = 1;
+    models.forEach(function (m) { mmax = Math.max(mmax, byModel[m].i + byModel[m].o); });
+    $('#useModels').innerHTML = models.length ? models.map(function (m) {
+      var v = byModel[m].i + byModel[m].o;
+      return '<div class="um-row"><span class="n" title="' + esc(m) + '">' + esc(m) + '</span>' +
+        '<span class="bar"><i style="width:' + Math.round(v / mmax * 100) + '%"></i></span>' +
+        '<span class="v">' + fmtTok(v) + '</span></div>';
+    }).join('') : '<div class="hintline">这 30 天还没有记录。</div>';
+
+    var rc = $('#useRecent');
+    var list = S.usage.slice(-8).reverse();
+    rc.innerHTML = list.length ? '' : '<div class="empty">还没有请求。说一句话就会记一笔。</div>';
+    list.forEach(function (u) {
+      var d = new Date(u.ts), pp = function (x) { return (x < 10 ? '0' : '') + x; };
+      var e = document.createElement('div');
+      e.className = 'uselog';
+      e.innerHTML = '<span class="t">' + pp(d.getMonth() + 1) + '.' + pp(d.getDate()) + ' ' + pp(d.getHours()) + ':' + pp(d.getMinutes()) + '</span>' +
+        '<span class="m">' + esc(u.x || u.m || '聊天') + '</span>' +
+        '<span class="k">' + fmtTok((u.i || 0) + (u.o || 0)) + '</span>';
+      rc.appendChild(e);
+    });
+  }
+  $('#useClear').onclick = function () {
+    confirmBox('清空用量统计？', '只是统计，不影响对话和设置。', function () {
+      S.usage = []; save(); renderUsage(); apiState(); toast('清空了');
+    });
+  };
+
+  /* =========================== 外观 =========================== */
+  var WALLS = [
+    { k: 'mist', n: '雾水', e: 'MIST' },
+    { k: 'moon', n: '月下', e: 'MOON' },
+    { k: 'rain', n: '雨夜', e: 'RAIN' },
+    { k: 'paper', n: '宣纸', e: 'PAPER' },
+    { k: 'deep', n: '深潭', e: 'POOL' },
+    { k: 'custom', n: '自己的', e: 'YOURS' }
+  ];
+  var FONTS = {
+    song: { n: '宋', e: 'SONG', serif: '"Cormorant Garamond","Noto Serif SC","Songti SC",Georgia,serif',
+      sans: '"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif' },
+    kai: { n: '楷', e: 'KAI', serif: '"Cormorant Garamond","Kaiti SC","STKaiti","KaiTi","Noto Serif SC",serif',
+      sans: '"PingFang SC","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif' },
+    hei: { n: '黑', e: 'HEI', serif: '"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif',
+      sans: '"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif' },
+    round: { n: '圆', e: 'ROUND', serif: '"Yuanti SC","Hiragino Sans GB","PingFang SC","Microsoft YaHei",system-ui,sans-serif',
+      sans: '"Yuanti SC","Hiragino Sans GB","PingFang SC",system-ui,sans-serif' }
+  };
+  function wallOf(k) { for (var i = 0; i < WALLS.length; i++) if (WALLS[i].k === k) return WALLS[i]; return WALLS[0]; }
+  function applyLook() {
+    var st = S.settings;
+    var root = document.documentElement;
+    var wall = st.wallpaper || 'mist';
+    if (wall === 'custom' && !st.wallCustom) wall = 'mist';
+    root.setAttribute('data-wall', wall);
+    root.setAttribute('data-radius', st.radius || 'soft');
+    root.setAttribute('data-motion', st.motion === false ? 'off' : 'on');
+    var f = FONTS[st.font] || FONTS.song;
+    root.style.setProperty('--serif', f.serif);
+    root.style.setProperty('--sans', f.sans);
+    root.style.setProperty('--k', String((st.fs || 100) / 100));
+    if (wall === 'custom') loadWall();
+    var wn = $('#wallName'); if (wn) wn.textContent = '壁纸 · ' + wallOf(wall).n;
+    var fn = $('#fontName'); if (fn) fn.textContent = '字体 · ' + f.n;
+    var fv = $('#fsVal'); if (fv) fv.textContent = (st.fs || 100) + '%';
+    $$('#fontGrid .font-tile').forEach(function (b) { b.classList.toggle('on', b.dataset.f === (st.font || 'song')); });
+    $$('#wallGrid .wall-tile').forEach(function (b) { b.classList.toggle('on', b.dataset.w === wall); });
+    $$('#radiusSeg button').forEach(function (b) { b.classList.toggle('on', b.dataset.r === (st.radius || 'soft')); });
+    var mo = $('#motionSwitch'); if (mo) mo.classList.toggle('on', st.motion !== false);
+    var rg = $('#fsRange'); if (rg) rg.value = st.fs || 100;
+  }
+  function loadWall() {
+    phDB.get('__wall').then(function (b) {
+      if (!b) return;
+      var u = URL.createObjectURL(b);
+      document.documentElement.style.setProperty('--wall-img', 'url("' + u + '")');
+    }).catch(function () {});
+  }
+  function renderLook() {
+    var wg = $('#wallGrid');
+    if (wg) {
+      wg.innerHTML = WALLS.map(function (w) {
+        return '<button class="wall-tile" data-w="' + w.k + '"><span class="pv pv-' + w.k + '">' +
+          (w.k === 'custom' ? '＋' : '') + '</span><b>' + w.n + '</b></button>';
+      }).join('');
+      $$('#wallGrid .wall-tile').forEach(function (b) {
+        b.onclick = function () {
+          if (b.dataset.w === 'custom' && !S.settings.wallCustom) { pickWall(); return; }
+          S.settings.wallpaper = b.dataset.w;
+          save(); applyLook();
+          if (b.dataset.w === 'custom') loadWall();
+        };
+      });
+    }
+    var fg = $('#fontGrid');
+    if (fg) {
+      fg.innerHTML = Object.keys(FONTS).map(function (k) {
+        var f = FONTS[k];
+        return '<button class="font-tile" data-f="' + k + '" style="font-family:' + f.serif + '"><b>水月 Aa</b><i>' + f.n + ' · ' + f.e + '</i></button>';
+      }).join('');
+      $$('#fontGrid .font-tile').forEach(function (b) {
+        b.onclick = function () { S.settings.font = b.dataset.f; save(); applyLook(); };
+      });
+    }
+  }
+  function pickWall() {
+    pickImage(function (d) {
+      var img = new Image();
+      img.onload = function () {
+        var sc = Math.min(1, 1920 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (b) {
+          phDB.put('__wall', b).then(function () {
+            S.settings.wallCustom = true;
+            S.settings.wallpaper = 'custom';
+            save();
+            var u = URL.createObjectURL(b);
+            document.documentElement.style.setProperty('--wall-img', 'url("' + u + '")');
+            applyLook();
+            toast('壁纸换好了');
+            $('#wallMsg').textContent = '已换成你自己的图 · ' + Math.round(b.size / 1024) + ' KB';
+          });
+        }, 'image/jpeg', 0.82);
+      };
+      img.src = d;
+    });
+  }
+  $('#wallUp').onclick = pickWall;
+  $('#wallClear').onclick = function () {
+    phDB.del('__wall').catch(function () {});
+    S.settings.wallCustom = false;
+    if (S.settings.wallpaper === 'custom') S.settings.wallpaper = 'mist';
+    document.documentElement.style.removeProperty('--wall-img');
+    save(); applyLook(); toast('去掉了');
+  };
+  $('#fsRange').oninput = function () {
+    S.settings.fs = +this.value;
+    applyLook();
+    $('#fsVal').textContent = this.value + '%';
+  };
+  $('#fsRange').onchange = function () { save(); };
+  $$('#radiusSeg button').forEach(function (b) {
+    b.onclick = function () { S.settings.radius = b.dataset.r; save(); applyLook(); };
+  });
+  $('#motionSwitch').onclick = function () {
+    S.settings.motion = S.settings.motion === false;
+    this.classList.toggle('on', S.settings.motion !== false);
+    save(); applyLook();
+  };
+
+  /* =========================== 接口预设 =========================== */
+  var API_PRESETS = [
+    { k: 'deepseek', n: 'DeepSeek', p: 'openai', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat', img: '' },
+    { k: 'moonshot', n: 'Kimi', p: 'openai', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k', img: '' },
+    { k: 'silicon', n: '硅基流动', p: 'openai', base: 'https://api.siliconflow.cn/v1', model: 'deepseek-ai/DeepSeek-V3', img: 'Kwai-Kolors/Kolors' },
+    { k: 'zhipu', n: '智谱', p: 'openai', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-plus', img: 'cogview-3-flash' },
+    { k: 'qwen', n: '通义', p: 'openai', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus', img: '' },
+    { k: 'openai', n: 'OpenAI', p: 'openai', base: 'https://api.openai.com/v1', model: 'gpt-4o-mini', img: 'gpt-image-1' },
+    { k: 'anthropic', n: 'Claude', p: 'anthropic', base: 'https://api.anthropic.com/v1', model: 'claude-sonnet-4-5', img: '' },
+    { k: 'ollama', n: '本地 Ollama', p: 'openai', base: 'http://localhost:11434/v1', model: 'qwen2.5:7b', img: '' },
+    { k: 'custom', n: '自定义', p: '', base: '', model: '', img: '' }
+  ];
+  var IMG_PRESETS = [
+    { k: 'silicon', n: '硅基流动', base: 'https://api.siliconflow.cn/v1', model: 'Kwai-Kolors/Kolors' },
+    { k: 'zhipu', n: '智谱', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'cogview-3-flash' },
+    { k: 'openai', n: 'OpenAI', base: 'https://api.openai.com/v1', model: 'gpt-image-1' },
+    { k: 'custom', n: '自定义', base: '', model: '' }
+  ];
+  function renderPresets() {
+    var host = $('#apiPresets');
+    if (!host) return;
+    host.innerHTML = API_PRESETS.map(function (p) {
+      return '<button class="preset' + (S.settings.preset === p.k ? ' on' : '') + '" data-k="' + p.k + '">' +
+        '<b>' + p.n + '</b><i>' + (p.base ? p.base.replace(/^https?:\/\//, '') : '自己填') + '</i></button>';
+    }).join('');
+    $$('#apiPresets .preset').forEach(function (b) {
+      b.onclick = function () {
+        var p = API_PRESETS.filter(function (x) { return x.k === b.dataset.k; })[0];
+        if (!p) return;
+        S.settings.preset = p.k;
+        if (p.k !== 'custom') {
+          S.settings.provider = p.p;
+          S.settings.baseUrl = p.base;
+          S.settings.model = p.model;
+          if (!S.settings.imgBase && p.img) {
+            S.settings.imgBase = p.base;
+            S.settings.imgModel = p.img;
+          }
+        }
+        save(); fillSettings();
+        toast(p.k === 'custom' ? '自己填吧' : ('填好了 · ' + p.n));
+      };
+    });
+    var ip = $('#imgPresets');
+    if (ip) {
+      ip.innerHTML = IMG_PRESETS.map(function (p) {
+        return '<button class="preset" data-k="' + p.k + '"><b>' + p.n + '</b><i>' +
+          (p.model || '自己填') + '</i></button>';
+      }).join('');
+      $$('#imgPresets .preset').forEach(function (b) {
+        b.onclick = function () {
+          var p = IMG_PRESETS.filter(function (x) { return x.k === b.dataset.k; })[0];
+          if (!p || p.k === 'custom') { toast('下面自己填'); return; }
+          S.settings.imgBase = p.base;
+          S.settings.imgModel = p.model;
+          if (!S.settings.imgKey) S.settings.imgKey = '';
+          save(); fillSettings();
+          toast('生图改成 ' + p.n);
+        };
+      });
+    }
+    var pn = $('#presetNow');
+    if (pn) {
+      var cur = API_PRESETS.filter(function (x) { return x.k === S.settings.preset; })[0];
+      pn.textContent = cur ? cur.n : '';
+    }
+  }
+  function fillExtraSettings() {
+    var st = S.settings;
+    ['imgBase', 'imgKey', 'imgModel', 'imgSize', 'mmKey', 'mmGroup', 'mmVoice', 'mmModel', 'mmSpeed', 'mmBase'].forEach(function (k) {
+      var el = $('#' + k); if (el) el.value = st[k] || '';
+    });
+    $$('#voiceEngine button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === (st.voiceEngine || 'system')); });
+    var ar = $('#autoRead'); if (ar) ar.classList.toggle('on', !!st.autoRead);
+    var mo = $('#memOn'); if (mo) mo.classList.toggle('on', st.memOn !== false);
+    renderPresets();
+    renderLook();
+    applyLook();
+    renderMem();
+    renderUsage();
+    var vs = $('#voiceState');
+    if (vs) vs.textContent = st.voiceEngine === 'minimax' ? (st.mmKey ? 'MiniMax' : '待填 Key') : '系统朗读';
+    var im = $('#imgState');
+    if (im) im.textContent = st.imgBase ? (st.imgModel || '已配') : '没配';
+  }
+  $$('#voiceEngine button').forEach(function (b) {
+    b.onclick = function () {
+      S.settings.voiceEngine = b.dataset.v;
+      $$('#voiceEngine button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      save();
+      $('#voiceState').textContent = b.dataset.v === 'minimax' ? (S.settings.mmKey ? 'MiniMax' : '待填 Key') : '系统朗读';
+    };
+  });
+  $('#autoRead').onclick = function () {
+    S.settings.autoRead = !S.settings.autoRead;
+    this.classList.toggle('on', S.settings.autoRead);
+    save();
+  };
+  $('#imgSave').onclick = function () {
+    var st = S.settings;
+    st.imgBase = $('#imgBase').value.trim();
+    st.imgModel = $('#imgModel').value.trim();
+    st.imgKey = $('#imgKey').value.trim();
+    st.imgSize = $('#imgSize').value;
+    save();
+    $('#imgMsg').textContent = st.imgBase ? '存好了 · ' + (st.imgModel || '默认模型') : '还没填 Base URL';
+    $('#imgState').textContent = st.imgBase ? (st.imgModel || '已配') : '没配';
+    toast('生图设置存好了');
+  };
+  $('#voiceSave').onclick = function () {
+    var st = S.settings;
+    st.mmKey = $('#mmKey').value.trim();
+    st.mmGroup = $('#mmGroup').value.trim();
+    st.mmVoice = $('#mmVoice').value;
+    st.mmModel = $('#mmModel').value.trim() || 'speech-02-hd';
+    st.mmSpeed = $('#mmSpeed').value.trim() || '1.0';
+    st.mmBase = $('#mmBase').value.trim() || 'https://api.minimax.chat/v1/t2a_v2';
+    save();
+    $('#voiceMsg').textContent = '存好了' + (st.mmKey ? '' : '（还没填 Key，会用系统朗读）');
+    $('#voiceState').textContent = st.voiceEngine === 'minimax' ? (st.mmKey ? 'MiniMax' : '待填 Key') : '系统朗读';
+    toast('声音设置存好了');
+  };
+  $('#voiceTest').onclick = function () {
+    speak('今天不必把所有事情都完成。回家本身也算一件事。', this);
+  };
+
+  /* =========================== 记忆 =========================== */
+  function renderMem() {
+    var host = $('#memList');
+    if (!host) return;
+    var on = S.memories.filter(function (m) { return m.on !== false; }).length;
+    $('#memCount').textContent = on + ' / ' + S.memories.length + ' 条';
+    var mo = $('#memOn'); if (mo) mo.classList.toggle('on', S.settings.memOn !== false);
+    if (!S.memories.length) {
+      host.innerHTML = '<div class="empty">还没有记住什么。<br>上面写一条，或者点「从最近的对话里整理」。</div>';
+      return;
+    }
+    host.innerHTML = '';
+    S.memories.slice().sort(function (a, b) { return b.at - a.at; }).forEach(function (m) {
+      var e = document.createElement('div');
+      e.className = 'memrow' + (m.on === false ? ' off' : ' on');
+      e.innerHTML = '<span class="tg"></span><div><div class="x">' + esc(m.text) + '</div>' +
+        '<div class="d">' + cn(ds(new Date(m.at))) + (m.auto ? ' · 整理出来的' : ' · 自己写的') + '</div></div>' +
+        '<button class="del">删</button>';
+      e.querySelector('.tg').onclick = function () { m.on = m.on === false; save(); renderMem(); };
+      e.querySelector('.del').onclick = function () {
+        S.memories = S.memories.filter(function (x) { return x.id !== m.id; });
+        save(); renderMem(); toast('忘了这条');
+      };
+      host.appendChild(e);
+    });
+  }
+  $('#memOn').onclick = function () {
+    S.settings.memOn = S.settings.memOn === false;
+    this.classList.toggle('on', S.settings.memOn !== false);
+    save(); toast(S.settings.memOn !== false ? '会带上这页记忆' : '先不带了');
+  };
+  function addMemory(text, auto) {
+    text = String(text || '').trim().slice(0, 120);
+    if (!text) return false;
+    if (S.memories.some(function (m) { return m.text === text; })) return false;
+    S.memories.push({ id: uid(), text: text, at: Date.now(), on: true, auto: !!auto });
+    if (S.memories.length > 80) S.memories = S.memories.slice(-80);
+    save();
+    return true;
+  }
+  $('#memAdd').onclick = function () {
+    var v = $('#memIn').value.trim();
+    if (!v) { toast('写一句'); return; }
+    if (!addMemory(v)) { toast('这条记过了'); return; }
+    $('#memIn').value = '';
+    renderMem(); toast('记住了'); foot('记住了一句：' + v.slice(0, 18));
+  };
+  $('#memIn').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); $('#memAdd').click(); }
+  });
+  $('#memDig').onclick = function () {
+    var c = curConv();
+    if (!c || c.messages.length < 2) { toast('先聊几句再整理'); return; }
+    var lines = c.messages.slice(-30).map(function (m) {
+      return (m.role === 'user' ? '她：' : '我：') + String(m.text).replace(/\n/g, ' ').slice(0, 140);
+    }).join('\n');
+    var keep = S.settings.system;
+    S.settings.system = '你是一个记忆整理器。从对话里提取关于「她」的、长期有用的事实：偏好、习惯、怕的东西、' +
+      '在意的人与事、重要的日子。不要提取寒暄和一次性情绪。只输出 JSON 数组，形如 [{"text":"她怕黑，睡觉要留一盏灯"}]，' +
+      '最多 5 条，每条 30 字以内；没有值得记的就输出 []。';
+    $('#memMsg').textContent = '正在整理…';
+    var out = '';
+    chat([{ role: 'user', content: '对话：\n' + lines }], function (d) { out += d; })
+      .then(function () {
+        S.settings.system = keep;
+        var arr = [];
+        var m = out.match(/\[[\s\S]*\]/);
+        if (m) { try { arr = JSON.parse(m[0]); } catch (e) { arr = []; } }
+        var n = 0;
+        arr.forEach(function (it) {
+          var t = (it && (it.text || it.t)) || '';
+          if (addMemory(t, true)) n++;
+        });
+        $('#memMsg').textContent = n ? ('记下了 ' + n + ' 条') : '没整理出新的';
+        renderMem();
+        toast(n ? ('记住了 ' + n + ' 条') : '没整理出新的');
+        if (n) foot('整理出 ' + n + ' 条记忆');
+      })
+      .catch(function (e) {
+        S.settings.system = keep;
+        $('#memMsg').textContent = '没整理成：' + (e.message || '');
+        toast('没整理成');
+      });
+  };
+
+  /* =========================== 声音 =========================== */
+  var curAudio = null;
+  function hexToBlob(hex, mime) {
+    hex = String(hex || '').replace(/\s/g, '');
+    var len = Math.floor(hex.length / 2);
+    var u = new Uint8Array(len);
+    for (var i = 0; i < len; i++) u[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return new Blob([u], { type: mime || 'audio/mpeg' });
+  }
+  function sysSpeak(text) {
+    if (!('speechSynthesis' in window)) { toast('这个浏览器不支持朗读'); return; }
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(String(text).slice(0, 320));
+      u.lang = 'zh-CN'; u.rate = 0.94; u.pitch = 1.0;
+      var vs = speechSynthesis.getVoices().filter(function (v) { return /zh|Chinese|中文/i.test(v.lang + v.name); });
+      if (vs.length) u.voice = vs[0];
+      speechSynthesis.speak(u);
+    } catch (e) { toast('读不出来'); }
+  }
+  function speak(text, btn) {
+    var st = S.settings;
+    var clean = String(text || '').replace(/```[\s\S]*?```/g, ' ').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
+    if (!clean) return;
+    if (st.voiceEngine !== 'minimax' || !st.mmKey) { sysSpeak(clean); return; }
+    var proxy = (st.mode === 'proxy' && hasProxy())
+      ? (st.proxyUrl ? st.proxyUrl.replace(/\/chat\/?$/, '') + '/tts' : '/api/tts') : null;
+    var base = (st.mmBase || 'https://api.minimax.chat/v1/t2a_v2').replace(/\/+$/, '');
+    var url = proxy || (base + (base.indexOf('?') >= 0 ? '&' : '?') + 'GroupId=' + encodeURIComponent(st.mmGroup || ''));
+    var body = {
+      model: st.mmModel || 'speech-02-hd', text: clean.slice(0, 1200), stream: false,
+      voice_setting: { voice_id: st.mmVoice || 'female-shaonv', speed: parseFloat(st.mmSpeed) || 1, vol: 1, pitch: 0 },
+      audio_setting: { sample_rate: 32000, bitrate: 128000, format: 'mp3', channel: 1 }
+    };
+    if (btn) { btn.disabled = true; }
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + st.mmKey },
+      body: JSON.stringify(proxy ? Object.assign({ apiKey: st.mmKey, groupId: st.mmGroup, baseUrl: base }, body) : body)
+    }).then(function (res) {
+      return res.text().then(function (t) {
+        var j = null;
+        try { j = JSON.parse(t); } catch (e) {}
+        if (!res.ok || !j) throw new Error('HTTP ' + res.status + ' · ' + String(t).slice(0, 120));
+        var audio = (j.data && j.data.audio) || j.audio;
+        if (!audio) throw new Error((j.base_resp && j.base_resp.status_msg) || '接口没给音频');
+        return audio;
+      });
+    }).then(function (hex) {
+      var blob = hexToBlob(hex);
+      if (curAudio) { try { curAudio.pause(); } catch (e) {} }
+      curAudio = new Audio(URL.createObjectURL(blob));
+      curAudio.play().catch(function () { toast('浏览器拦了播放，再点一次'); });
+      recUsage('tts', estTok(clean), 0, '朗读');
+    }).catch(function (e) {
+      toast('MiniMax 没读成：' + (e.message || '可能被跨域拦了，换系统朗读或走代理'));
+    }).then(function () { if (btn) btn.disabled = false; });
+  }
+
+  /* =========================== 生图 =========================== */
+  function imageEndpoint() {
+    var st = S.settings;
+    if (st.mode === 'proxy' && hasProxy()) {
+      return st.proxyUrl ? st.proxyUrl.replace(/\/chat\/?$/, '') + '/image' : '/api/image';
+    }
+    return null;
+  }
+  function genImage(prompt, cb) {
+    var st = S.settings;
+    var base = (st.imgBase || st.baseUrl || '').replace(/\/+$/, '');
+    var key = st.imgKey || st.apiKey;
+    var body = {
+      model: st.imgModel || 'gpt-image-1', prompt: prompt, n: 1,
+      size: st.imgSize || '1024x1024', response_format: 'b64_json'
+    };
+    var ep = imageEndpoint();
+    if (!ep && !base) { cb(new Error('先去设置里填生图的 Base URL')); return; }
+    if (!ep && !key) { cb(new Error('生图需要一个 API Key')); return; }
+    var req = ep
+      ? fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ baseUrl: base, apiKey: key }, body)) })
+      : fetch(base + '/images/generations', { method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify(body) });
+    req.then(function (res) {
+      return res.text().then(function (t) {
+        var j = null;
+        try { j = JSON.parse(t); } catch (e) {}
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status + ' · ' + ((j && (j.error && (j.error.message || j.error))) || String(t).slice(0, 140)));
+        }
+        if (!j) throw new Error('返回的不是 JSON');
+        var d = (j.data && j.data[0]) || (j.images && j.images[0]) || j;
+        var b64 = d.b64_json || (d.url && String(d.url).indexOf('data:') === 0 ? String(d.url).split(',')[1] : null);
+        if (b64) return 'data:image/png;base64,' + b64;
+        if (d.url) return d.url;
+        throw new Error('接口没返回图');
+      });
+    }).then(function (u) { cb(null, u); }).catch(function (e) { cb(e); });
+  }
+  function dataURLtoBlob(u) {
+    var parts = String(u).split(',');
+    var mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/png';
+    var bin = atob(parts[1] || '');
+    var arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+  function saveGenerated(u, prompt, albumId, cb) {
+    var id = uid();
+    if (/^data:/.test(u)) {
+      var b = dataURLtoBlob(u);
+      phDB.put(id, b).then(function () {
+        S.photos.push({ id: id, at: Date.now(), note: prompt, album: albumId || '', bytes: b.size, w: 0, h: 0 });
+        save(); renderPhoto();
+        cb && cb(null);
+      }).catch(function (e) { cb && cb(e); });
+    } else {
+      phUrls[id] = u;
+      S.photos.push({ id: id, at: Date.now(), note: prompt, album: albumId || '', ext: u, bytes: 0, w: 0, h: 0 });
+      save(); renderPhoto();
+      cb && cb(null);
+    }
+    recUsage('image', estTok(prompt), 0, '生图');
+  }
+  function openDraw() {
+    var opts = '<option value="">散片</option>' + (S.albums || []).map(function (a) {
+      return '<option value="' + a.id + '"' + (phCur === a.id ? ' selected' : '') + '>' + esc(a.n) + '</option>';
+    }).join('');
+    openModal({
+      title: '画一张', sub: 'image · 画完直接进相册',
+      body: '<div class="field"><label>要画什么</label>' +
+        '<textarea class="input" id="dwPrompt" rows="3" placeholder="雨后的水面，一张长椅，远处有一点月光"></textarea></div>' +
+        '<div class="field"><label>放进哪本</label><select class="input" id="dwAlbum">' + opts + '</select></div>' +
+        '<div class="rowline"><button class="btn ghost sm" id="dwThink">让小机想画面</button>' +
+        '<span class="hintline" id="dwMsg"></span></div>' +
+        '<div class="draw-preview" id="dwPrev" style="display:none"><img alt=""></div>',
+      foot: '<button class="btn ghost" id="dwC">算了</button><button class="btn pri" id="dwGo">画</button>',
+      onOpen: function () {
+        $('#dwC').onclick = closeModal;
+        $('#dwThink').onclick = function () {
+          var seed = $('#dwPrompt').value.trim();
+          var keep = S.settings.system;
+          S.settings.system = '你帮人写画面描述。把对方给的一句话变成一段适合图像模型的中文提示：具体的场景、光线、时间、' +
+            '材质和镜头感，安静克制，避免文字和水印。只输出描述本身，80 字以内。';
+          $('#dwMsg').textContent = '正在想…';
+          var out = '';
+          chat([{ role: 'user', content: seed || '画一个雨夜的水面，远处有一盏灯' }], function (d) { out += d; })
+            .then(function () {
+              S.settings.system = keep;
+              if (out.trim()) { $('#dwPrompt').value = out.trim().slice(0, 200); $('#dwMsg').textContent = '想好了，可以改'; }
+              else $('#dwMsg').textContent = '没想出来，自己写一句吧';
+            })
+            .catch(function (e) { S.settings.system = keep; $('#dwMsg').textContent = '没想成：' + e.message; });
+        };
+        $('#dwGo').onclick = function () {
+          var prompt = $('#dwPrompt').value.trim();
+          if (!prompt) { toast('先写要画什么'); return; }
+          var btn = this;
+          btn.disabled = true; btn.textContent = '正在画…';
+          $('#dwMsg').textContent = '这一张可能要十几秒';
+          genImage(prompt, function (err, u) {
+            btn.disabled = false; btn.textContent = '画';
+            if (err) {
+              $('#dwMsg').textContent = '没画成：' + (err.message || err);
+              toast('没画成');
+              return;
+            }
+            $('#dwPrev').style.display = '';
+            $('#dwPrev img').src = u;
+            saveGenerated(u, prompt, $('#dwAlbum').value, function (e2) {
+              if (e2) { toast('存不进相册：' + e2.message); return; }
+              $('#dwMsg').textContent = '画好了 · 已经放进相册';
+              toast('画好了，在相册里');
+              foot('画了一张：' + prompt.slice(0, 16));
+              setTimeout(function () { closeModal(); phView = 'album'; renderPhoto(); }, 1200);
+            });
+          });
+        };
+      }
+    });
+  }
+  $('#phDraw').onclick = openDraw;
+
   /* =========================== 设置 =========================== */
   function fillSettings() {
     var s = S.settings, r = S.relation;
-    $('#apiMode').querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === s.mode); });
+    $$('#setTabs button').forEach(function (b) {
+    b.onclick = function () {
+      $$('#setTabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      $$('.set-panel').forEach(function (p) { p.classList.toggle('on', p.id === 'set-' + b.dataset.s); });
+      if (b.dataset.s === 'use') renderUsage();
+      if (b.dataset.s === 'mem') renderMem();
+      if (b.dataset.s === 'look') { renderLook(); applyLook(); }
+      if (b.dataset.s === 'api') renderPresets();
+    };
+  });
+  $('#apiMode').querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === s.mode); });
     $('#apiProvider').value = s.provider;
     $('#apiBase').value = s.baseUrl;
     $('#apiKey').value = s.apiKey;
@@ -1158,6 +1835,7 @@
     $('#rAi').value = r.ai; $('#rMe').value = r.me;
     $('#rSince').value = r.since; $('#rNick').value = r.nick;
     $('#rLamp').value = r.lamp;
+    fillExtraSettings();
   }
   $('#apiMode').querySelectorAll('button').forEach(function (b) {
     b.onclick = function () { S.settings.mode = b.dataset.m; save(); fillSettings(); apiState(); };
@@ -1171,7 +1849,7 @@
     s.temp = $('#apiTemp').value.trim() || '0.9';
     s.system = $('#apiSystem').value;
     s.proxyUrl = $('#apiProxy').value.trim();
-    save(); apiState();
+    save(); apiState(); renderPresets();
     toast('保存好了');
     $('#apiMsg').textContent = '已保存 · ' + (hasProxy() ? '走代理' : (s.mode === 'proxy' ? '代理不可用，将用直连' : '直连'));
   };
