@@ -639,7 +639,8 @@
               <div class="hd"><span class="l">image · 生图</span><span class="l" id="imgState"></span></div>
               <h3>画一张</h3>
               <p class="hintline" style="margin-bottom:12px">
-                在「影」里点「画一张」，画面会直接进相册。接口要有 <span class="kbd">/images/generations</span>。
+                在「影」里点「画一张」，画面会直接进相册。接口要有 <span class="kbd">/images/generations</span>。<br>
+                静态站是浏览器直连，需要对方允许跨域；被拦就用本地服务或自建代理。
               </p>
               <div class="presets" id="imgPresets"></div>
               <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
@@ -667,7 +668,8 @@
               <div class="hd"><span class="l">voice · 声音</span><span class="l" id="voiceState"></span></div>
               <h3>让他读出来</h3>
               <p class="hintline" style="margin-bottom:12px">
-                MiniMax 的语音要填 Key 和 GroupId；没有也能用系统朗读顶上。
+                MiniMax 的语音要填 Key 和 GroupId；没有也能用系统朗读顶上。<br>
+                静态站直连若被跨域拦住，改走本地服务（<span class="kbd">node server.js</span>）或自建代理。
               </p>
               <div class="field"><label>用哪个声音</label>
                 <div class="seg" id="voiceEngine">
