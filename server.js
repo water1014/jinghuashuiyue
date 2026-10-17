@@ -163,6 +163,49 @@ function fail(res, code, msg) {
   res.end(JSON.stringify({ error: msg }));
 }
 
+/* ------------------------------ 生图 / 语音转发 ------------------------------ */
+async function forwardJSON(req, res, target, headers, body) {
+  try {
+    const up = await fetch(target, {
+      method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+      body: JSON.stringify(body)
+    });
+    const txt = await up.text();
+    res.writeHead(up.status, {
+      'Content-Type': up.headers.get('content-type') || 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache'
+    });
+    res.end(txt);
+  } catch (e) {
+    fail(res, 502, '连不上上游：' + e.message);
+  }
+}
+
+async function handleImage(req, res, raw) {
+  let b = {};
+  try { b = JSON.parse(raw || '{}'); } catch (e) { return fail(res, 400, '请求不是合法 JSON'); }
+  const key = b.apiKey || process.env.OPENAI_API_KEY || process.env.API_KEY || '';
+  if (!key) return fail(res, 400, '生图需要 API Key');
+  const base = (b.baseUrl || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+  const payload = {
+    model: b.model || 'gpt-image-1', prompt: b.prompt || '', n: 1,
+    size: b.size || '1024x1024', response_format: 'b64_json'
+  };
+  return forwardJSON(req, res, base + '/images/generations', { Authorization: 'Bearer ' + key }, payload);
+}
+
+async function handleTTS(req, res, raw) {
+  let b = {};
+  try { b = JSON.parse(raw || '{}'); } catch (e) { return fail(res, 400, '请求不是合法 JSON'); }
+  const key = b.apiKey || process.env.MINIMAX_API_KEY || '';
+  if (!key) return fail(res, 400, 'MiniMax 需要 API Key');
+  const group = b.groupId || process.env.MINIMAX_GROUP_ID || '';
+  const base = (b.baseUrl || 'https://api.minimax.chat/v1/t2a_v2').replace(/\/+$/, '');
+  const target = base + (base.indexOf('?') >= 0 ? '&' : '?') + 'GroupId=' + encodeURIComponent(group);
+  delete b.apiKey; delete b.groupId; delete b.baseUrl;
+  return forwardJSON(req, res, target, { Authorization: 'Bearer ' + key }, b);
+}
+
 /* ------------------------------ 静态 ------------------------------ */
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname);
@@ -185,6 +228,16 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && u.pathname === '/api/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, mock: !pickKey({}) }));
+  }
+
+  if (req.method === 'POST' && (u.pathname === '/api/image' || u.pathname === '/api/tts')) {
+    let raw = '';
+    req.on('data', c => { raw += c; if (raw.length > MAX_BODY) req.destroy(); });
+    req.on('end', () => {
+      if (u.pathname === '/api/image') handleImage(req, res, raw);
+      else handleTTS(req, res, raw);
+    });
+    return;
   }
 
   if (req.method === 'POST' && u.pathname === '/api/chat') {
