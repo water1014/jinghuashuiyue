@@ -102,6 +102,7 @@
       coupons: JSON.parse(JSON.stringify(DEFAULT_COUPONS)),
       diary: {},
       photos: [],
+      albums: [],
       letters: JSON.parse(JSON.stringify(DEFAULT_LETTERS)),
       moonWord: '今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。',
       pills: null,
@@ -141,6 +142,7 @@
       S.coupons = (d.coupons && d.coupons.length) ? d.coupons : JSON.parse(JSON.stringify(DEFAULT_COUPONS));
       S.diary = d.diary || {};
       S.photos = d.photos || [];
+      S.albums = d.albums || [];
     } catch (e) {
       S.pills = JSON.parse(JSON.stringify(window.PILULIER_PILLS.items));
     }
@@ -1973,8 +1975,8 @@
     });
   }
 
-  /* =========================== 影 · 相册 =========================== */
-  /* 图放在 IndexedDB（容量按磁盘算），只有说明和日期跟着 localStorage 走 */
+  /* =========================== 影 · 卡册 =========================== */
+  /* 图存 IndexedDB（容量按磁盘算），说明/归属/日期跟着 localStorage 走 */
   var phDB = (function () {
     var dbp = null;
     function open() {
@@ -2016,7 +2018,6 @@
       return phUrls[id];
     }).catch(function () { return null; });
   }
-  /* 压一下再存：长边 1600，JPEG .84 —— 一张几百 KB，眼睛看不出差别 */
   function phCompress(file, cb) {
     var url = URL.createObjectURL(file);
     var img = new Image();
@@ -2032,44 +2033,115 @@
     img.onerror = function () { URL.revokeObjectURL(url); cb(null); };
     img.src = url;
   }
+  var phCur = '';          // '' = 卡册列表；albumId = 某一本里
   var phOrder = [];
+  function albumById(id) {
+    for (var i = 0; i < (S.albums || []).length; i++) if (S.albums[i].id === id) return S.albums[i];
+    return null;
+  }
+  function photosOf(aid) {
+    return S.photos.filter(function (p) { return (p.album || '') === aid; })
+      .sort(function (a, b) { return b.at - a.at; });
+  }
   function renderPhoto() {
-    var g = $('#phGrid');
-    if (!g) return;
-    g.innerHTML = '';
+    var home = $('#phHome'), one = $('#phOne');
+    if (!home || !one) return;
     var n = S.photos.length;
+    var bytes = S.photos.reduce(function (x, p) { return x + (p.bytes || 0); }, 0);
     $('#phCount').textContent = n;
-    var bytes = S.photos.reduce(function (a, p) { return a + (p.bytes || 0); }, 0);
     $('#phMeta').textContent = n
-      ? (n + ' 张 · 约 ' + (bytes / 1048576).toFixed(1) + ' MB · 只在这台机器上，不会传去别处')
+      ? (S.albums.length + ' 本卡册 · ' + n + ' 张 · 约 ' + (bytes / 1048576).toFixed(1) + ' MB · 只在这台机器上')
       : '还没有照片。放一张进来，它就留在这儿了。';
-    if (!n) {
-      g.innerHTML = '<div class="empty" style="grid-column:1/-1">还没有照片。<br>把想留的放进来。</div>';
+    if (phCur) {
+      home.style.display = 'none'; one.style.display = '';
+      renderAlbumView();
+    } else {
+      home.style.display = ''; one.style.display = 'none';
+      renderAlbumList();
+    }
+  }
+  function photoCard(p, idx) {
+    var c = document.createElement('div');
+    c.className = 'phcard';
+    c.innerHTML = '<div class="ph"><img alt=""></div><div class="nt"></div><div class="dt"></div>';
+    c.querySelector('.nt').textContent = p.note || '';
+    var d = new Date(p.at), pp = function (x) { return (x < 10 ? '0' : '') + x; };
+    c.querySelector('.dt').textContent = cn(ds(d)) + ' · ' + pp(d.getHours()) + ':' + pp(d.getMinutes());
+    phUrl(p.id).then(function (u) { if (u) c.querySelector('img').src = u; });
+    c.onclick = function () { phOpen(idx); };
+    c.oncontextmenu = function (e) { e.preventDefault(); phMenu(p); };
+    return c;
+  }
+  function renderAlbumList() {
+    var g = $('#albumGrid');
+    g.innerHTML = '';
+    if (!(S.albums || []).length) {
+      g.innerHTML = '<div class="empty" style="grid-column:1/-1">还没有卡册。<br>「＋ 新建卡册」—— 比如「家」「好吃的」「一起看过的月亮」。</div>';
+    }
+    (S.albums || []).forEach(function (a) {
+      var ps = photosOf(a.id);
+      var el = document.createElement('div');
+      el.className = 'alb';
+      el.innerHTML = '<div class="h"><div><div class="n serif">' + esc(a.n) + '</div>' +
+        '<div class="d">' + esc(a.d || '（没写说明）') + '</div></div>' +
+        '<div class="c">' + ps.length + ' 张</div></div>' +
+        '<div class="strip"></div>' +
+        '<div class="ft"><span>' + (ps.length ? ('最近 ' + cn(ds(new Date(ps[0].at)))) : '空的') + '</span>' +
+        '<span>进去看 ›</span></div>';
+      var strip = el.querySelector('.strip');
+      if (!ps.length) {
+        strip.innerHTML = '<div class="strip-empty">这本还空着</div>';
+      } else {
+        ps.slice(0, 3).forEach(function (p) {
+          var img = document.createElement('img');
+          img.alt = '';
+          strip.appendChild(img);
+          phUrl(p.id).then(function (u) { if (u) img.src = u; });
+        });
+        for (var k = ps.length; k < 3; k++) {
+          var ph = document.createElement('div');
+          ph.className = 'ph-blank';
+          strip.appendChild(ph);
+        }
+      }
+      el.onclick = function () { phCur = a.id; renderPhoto(); };
+      el.oncontextmenu = function (e) { e.preventDefault(); albumMenu(a); };
+      g.appendChild(el);
+    });
+    var loose = photosOf('');
+    var lg = $('#phLoose');
+    lg.innerHTML = '';
+    if (!loose.length) {
+      lg.innerHTML = '<div class="empty" style="grid-column:1/-1">没有散片。</div>';
+    } else {
+      phOrder = loose;
+      loose.forEach(function (p, i) { lg.appendChild(photoCard(p, i)); });
+    }
+  }
+  function renderAlbumView() {
+    var a = albumById(phCur);
+    if (!a) { phCur = ''; renderPhoto(); return; }
+    var ps = photosOf(a.id);
+    $('#alName').textContent = a.n;
+    $('#alDesc').textContent = (a.d || '') + (ps.length ? ' · ' + ps.length + ' 张' : ' · 还空着');
+    var g = $('#phGrid');
+    g.innerHTML = '';
+    phOrder = ps;
+    if (!ps.length) {
+      g.innerHTML = '<div class="empty" style="grid-column:1/-1">这本还空着。<br>「往这本里放照片」。</div>';
       return;
     }
-    phOrder = S.photos.slice().sort(function (a, b) { return b.at - a.at; });
-    phOrder.forEach(function (p, i) {
-      var c = document.createElement('div');
-      c.className = 'phcard';
-      c.innerHTML = '<div class="ph"><img alt=""></div><div class="nt"></div><div class="dt"></div>';
-      c.querySelector('.nt').textContent = p.note || '';
-      var d = new Date(p.at);
-      var pp = function (x) { return (x < 10 ? '0' : '') + x; };
-      c.querySelector('.dt').textContent = cn(ds(d)) + ' · ' + pp(d.getHours()) + ':' + pp(d.getMinutes());
-      phUrl(p.id).then(function (u) { if (u) c.querySelector('img').src = u; });
-      c.onclick = function () { phOpen(i); };
-      c.oncontextmenu = function (e) { e.preventDefault(); phMenu(p); };
-      g.appendChild(c);
-    });
+    ps.forEach(function (p, i) { g.appendChild(photoCard(p, i)); });
   }
+  /* 大图 */
   function phOpen(i) {
     if (!phOrder[i]) return;
     var p = phOrder[i];
     phUrl(p.id).then(function (u) {
       $('#lbImg').src = u || '';
       $('#lbNote').textContent = p.note || '';
-      var d = new Date(p.at);
-      $('#lbMeta').textContent = cn(ds(d)) + ' · 第 ' + (phOrder.length - i) + ' 张 · 共 ' + phOrder.length + ' 张';
+      $('#lbMeta').textContent = cn(ds(new Date(p.at))) + ' · 第 ' + (i + 1) + ' 张 · 共 ' + phOrder.length + ' 张';
+      $('#lightbox').dataset.pid = p.id;
     });
     $('#lightbox').classList.add('on');
     $('#lightbox').dataset.i = String(i);
@@ -2091,112 +2163,272 @@
     if (e.key === 'ArrowLeft') phGo(-1);
     if (e.key === 'ArrowRight') phGo(1);
   });
+  $('#lbAi').onclick = function () {
+    var pid = $('#lightbox').dataset.pid;
+    var p = S.photos.filter(function (x) { return x.id === pid; })[0];
+    if (!p) return;
+    this.textContent = '小机正在看…';
+    var self = this;
+    aiNoteFor(p, function () { self.textContent = '让小机写一句'; });
+  };
+  /* 单张：备注 / 移到别的册 / 删 */
   function phMenu(p) {
+    var opts = '<option value="">散片</option>' + (S.albums || []).map(function (a) {
+      return '<option value="' + a.id + '"' + (p.album === a.id ? ' selected' : '') + '>' + esc(a.n) + '</option>';
+    }).join('');
     openModal({
       title: '这张', sub: 'photo',
       body: '<div class="field"><label>背面的话</label><textarea class="input" id="pnT" rows="3">' + esc(p.note || '') + '</textarea></div>' +
-        '<p class="hintline">存于 ' + cn(ds(new Date(p.at))) + ' · ' + Math.round((p.bytes || 0) / 1024) + ' KB</p>',
+        '<div class="field"><label>放进哪本</label><select class="input" id="pnA">' + opts + '</select></div>' +
+        '<div class="rowline"><button class="btn ghost sm" id="pnAi">让小机写一句</button>' +
+        '<span class="hintline">' + cn(ds(new Date(p.at))) + ' · ' + Math.round((p.bytes || 0) / 1024) + ' KB</span></div>',
       foot: '<button class="btn danger" id="pnD">删掉这张</button><button class="btn ghost" id="pnC">算了</button><button class="btn pri" id="pnS">写上去</button>',
       onOpen: function () {
         $('#pnC').onclick = closeModal;
         $('#pnS').onclick = function () {
           p.note = $('#pnT').value.trim();
+          p.album = $('#pnA').value;
           save(); renderPhoto(); closeModal();
-          foot('给一张照片写了话');
+          foot('改了一张照片的说明');
+        };
+        $('#pnAi').onclick = function () {
+          var b = $('#pnAi');
+          b.textContent = '正在看…'; b.disabled = true;
+          aiNoteFor(p, function (ok) {
+            b.textContent = ok ? '写好了' : '再试一次'; b.disabled = false;
+            if (ok) $('#pnT').value = p.note || '';
+          });
         };
         $('#pnD').onclick = function () {
           confirmBox('删掉这张？', '照片本体也会从这台机器上抹掉，没法找回。', function () {
             phDB.del(p.id).catch(function () {});
             if (phUrls[p.id]) { URL.revokeObjectURL(phUrls[p.id]); delete phUrls[p.id]; }
             S.photos = S.photos.filter(function (x) { return x.id !== p.id; });
-            save(); renderPhoto();
+            save(); renderPhoto(); closeModal();
             toast('删掉了');
           });
         };
       }
     });
   }
-  $('#phAdd').onclick = function () {
+  /* 卡册 */
+  function albumEdit(a) {
+    openModal({
+      title: a ? '改这本' : '新建一本卡册', sub: 'album',
+      body: '<div class="field"><label>名字</label><input class="input" id="anN" value="' + esc(a ? a.n : '') + '" placeholder="家 / 好吃的 / 一起看过的月亮"></div>' +
+        '<div class="field"><label>一句话（写在名字下面）</label><input class="input" id="anD" value="' + esc(a ? (a.d || '') : '') + '" placeholder="想给你看的生活"></div>',
+      foot: '<button class="btn ghost" id="anC">算了</button><button class="btn pri" id="anS">' + (a ? '改好' : '建这本') + '</button>',
+      onOpen: function () {
+        $('#anC').onclick = closeModal;
+        $('#anS').onclick = function () {
+          var n = $('#anN').value.trim();
+          if (!n) { toast('起个名字'); return; }
+          if (a) { a.n = n; a.d = $('#anD').value.trim(); }
+          else { S.albums.push({ id: uid(), n: n, d: $('#anD').value.trim(), at: Date.now() }); }
+          save(); renderPhoto(); closeModal();
+          toast(a ? '改好了' : '建好了');
+          foot(a ? ('改了卡册：' + n) : ('建了一本卡册：' + n));
+        };
+      }
+    });
+  }
+  function albumMenu(a) {
+    openModal({
+      title: a.n, sub: 'album · ' + photosOf(a.id).length + ' 张',
+      body: '<p class="hintline">' + esc(a.d || '（没写说明）') + '</p>',
+      foot: '<button class="btn danger" id="alD2">删掉这本</button><button class="btn ghost" id="alR2">改名</button><button class="btn pri" id="alG2">进去看</button>',
+      onOpen: function () {
+        $('#alG2').onclick = function () { phCur = a.id; closeModal(); renderPhoto(); };
+        $('#alR2').onclick = function () { closeModal(); albumEdit(a); };
+        $('#alD2').onclick = function () {
+          closeModal();
+          confirmBox('删掉「' + a.n + '」？', '里面的 ' + photosOf(a.id).length + ' 张会变成散片，照片本身不删。', function () {
+            S.photos.forEach(function (p) { if (p.album === a.id) p.album = ''; });
+            S.albums = S.albums.filter(function (x) { return x.id !== a.id; });
+            if (phCur === a.id) phCur = '';
+            save(); renderPhoto();
+            toast('删了这本，照片留成散片');
+          });
+        };
+      }
+    });
+  }
+  $('#alNew').onclick = function () { albumEdit(null); };
+  $('#alRename').onclick = function () { var a = albumById(phCur); if (a) albumEdit(a); };
+  $('#alDel').onclick = function () { var a = albumById(phCur); if (a) albumMenu(a); };
+  $('#phBack').onclick = function () { phCur = ''; renderPhoto(); };
+
+  /* 上传：先预览，写一句、选归哪本，再入库 */
+  var upFiles = [], upUrls = [];
+  function pickForUpload() {
     var i = document.createElement('input');
     i.type = 'file'; i.accept = 'image/*'; i.multiple = true;
-    i.onchange = function () { phTake(i.files); };
+    i.onchange = function () { openUpload([].slice.call(i.files || [])); };
     i.click();
+  }
+  $('#phAdd').onclick = pickForUpload;
+  $('#phAddHere').onclick = pickForUpload;
+  function openUpload(files) {
+    upFiles = files.filter(function (f) { return /^image\//.test(f.type); });
+    if (!upFiles.length) { toast('没有图片'); return; }
+    upUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    upUrls = [];
+    var strip = $('#upStrip');
+    strip.innerHTML = '';
+    upFiles.slice(0, 6).forEach(function (f) {
+      var u = URL.createObjectURL(f);
+      upUrls.push(u);
+      var img = document.createElement('img');
+      img.src = u;
+      strip.appendChild(img);
+    });
+    var sel = $('#upAlbum');
+    sel.innerHTML = '<option value="">散片（不归册）</option>' +
+      (S.albums || []).map(function (a) {
+        return '<option value="' + a.id + '"' + (phCur === a.id ? ' selected' : '') + '>' + esc(a.n) + '</option>';
+      }).join('');
+    $('#upNote').value = '';
+    $('#upAi').classList.remove('on');
+    $('#upTip').textContent = '小机要看图，得接口支持图片才行（DeepSeek 部分模型、GPT-4o、Claude 可以）。';
+    $('#upVeil').classList.add('on');
+    $('#upOk').textContent = '放进相册（' + upFiles.length + ' 张）';
+  }
+  $('#upX').onclick = $('#upCancel').onclick = $('#upMask').onclick = function () {
+    $('#upVeil').classList.remove('on');
+    upUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    upUrls = []; upFiles = [];
   };
-  function phTake(files) {
-    var arr = [].slice.call(files || []).filter(function (f) { return /^image\//.test(f.type); });
-    if (!arr.length) { toast('没有图片'); return; }
-    var done = 0;
-    arr.forEach(function (f) {
+  $('#upAi').onclick = function () { this.classList.toggle('on'); };
+  $('#upOk').onclick = function () {
+    var note = $('#upNote').value.trim();
+    var album = $('#upAlbum').value;
+    var useAi = $('#upAi').classList.contains('on');
+    var list = upFiles.slice();
+    $('#upVeil').classList.remove('on');
+    upUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    upUrls = []; upFiles = [];
+    var total = list.length, done = 0;
+    list.forEach(function (f) {
       phCompress(f, function (blob, w, h) {
         done++;
         if (!blob) { toast('有一张读不出来：' + f.name); return; }
         var id = uid();
         phDB.put(id, blob).then(function () {
-          S.photos.push({ id: id, at: Date.now(), note: '', w: w, h: h, bytes: blob.size });
+          var p = { id: id, at: Date.now(), note: note, album: album, w: w, h: h, bytes: blob.size };
+          S.photos.push(p);
           save(); renderPhoto();
+          if (useAi) aiNoteFor(p);
         }).catch(function (e) { toast('存不进去：' + (e && e.message)); });
-        if (done === arr.length) {
-          toast('放进来了 · ' + arr.length + ' 张');
-          foot('放了 ' + arr.length + ' 张照片进来');
+        if (done === total) {
+          toast('放进来了 · ' + total + ' 张');
+          foot('放了 ' + total + ' 张照片' + (album ? ('进「' + (albumById(album) || {}).n + '」') : '（散片）'));
         }
       });
     });
-  }
-  /* 拖拽也能放进来 */
+  };
+  /* 拖拽 */
   (function () {
-    var grid = $('#phGrid');
+    var grid = $('#phLoose');
     if (!grid) return;
     ['dragenter', 'dragover'].forEach(function (ev) {
-      grid.addEventListener(ev, function (e) { e.preventDefault(); grid.style.opacity = '.7'; });
+      document.addEventListener(ev, function (e) { if (phCur === '') e.preventDefault(); });
     });
-    ['dragleave', 'drop'].forEach(function (ev) {
-      grid.addEventListener(ev, function (e) { e.preventDefault(); grid.style.opacity = ''; });
-    });
-    grid.addEventListener('drop', function (e) {
+    document.addEventListener('drop', function (e) {
+      if (phCur !== '' || !$('#p-photo').classList.contains('on')) return;
+      e.preventDefault();
       var f = e.dataTransfer && e.dataTransfer.files;
-      if (f && f.length) phTake(f);
+      if (f && f.length) openUpload([].slice.call(f));
     });
   })();
-  /* 导出成一份自包含的相册：图片内嵌，随便一台电脑打开都能看 */
+  /* 小机看图写一句 */
+  function aiNoteFor(p, cb) {
+    phDB.get(p.id).then(function (blob) {
+      if (!blob) { toast('照片读不出来'); if (cb) cb(false); return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        var dataUrl = String(fr.result);
+        var b64 = dataUrl.split(',')[1] || '';
+        var ask = '这是我放进相册的一张照片。用一句话写下你看见的，或者你想说的。' +
+          '不要写"这张照片里"，不要堆形容词，别超过三十个字。';
+        var prov = S.settings.provider;
+        var content = prov === 'anthropic'
+          ? [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }, { type: 'text', text: ask }]
+          : [{ type: 'text', text: ask }, { type: 'image_url', image_url: { url: dataUrl } }];
+        var out = '';
+        chat([{ role: 'user', content: content }], function (d) { out += d; })
+          .then(function () {
+            var txt = out.trim().replace(/^["'「]|["'」]$/g, '').slice(0, 60);
+            if (!txt) { toast('小机没说话'); if (cb) cb(false); return; }
+            p.note = txt;
+            save();
+            if ($('#upTip')) $('#upTip').textContent = '小机写的：' + txt;
+            renderPhoto();
+            toast('小机写了一句：' + txt);
+            foot('小机给一张照片写了话');
+            if (cb) cb(true);
+          })
+          .catch(function (e) {
+            toast('没写成：' + (e.message || '这个模型可能看不了图'));
+            if ($('#upTip')) $('#upTip').textContent = '没写成 —— 换一个能看图的模型，或者自己写一句。';
+            if (cb) cb(false);
+          });
+      };
+      fr.onerror = function () { if (cb) cb(false); };
+      fr.readAsDataURL(blob);
+    });
+  }
+  /* 导出：按卡册分组，自包含 */
   $('#phExport').onclick = function () {
     if (!S.photos.length) { toast('还没有照片'); return; }
-    var list = S.photos.slice().sort(function (a, b) { return b.at - a.at; });
-    var items = [];
-    var seq = 0;
+    var groups = [];
+    (S.albums || []).forEach(function (a) {
+      var ps = photosOf(a.id);
+      if (ps.length) groups.push({ n: a.n, d: a.d, ps: ps });
+    });
+    var loose = photosOf('');
+    if (loose.length) groups.push({ n: '散片', d: '没归册的', ps: loose });
+    var flat = [];
+    groups.forEach(function (g) { g.ps.forEach(function (p) { flat.push({ p: p, g: g.n }); }); });
+    var items = [], seq = 0;
     (function next() {
-      if (seq >= list.length) return build();
-      var p = list[seq++];
-      phDB.get(p.id).then(function (b) {
-        if (!b) { items.push({ p: p, d: '' }); return next(); }
+      if (seq >= flat.length) return build();
+      var it = flat[seq++];
+      phDB.get(it.p.id).then(function (b) {
+        if (!b) { items.push({ it: it, d: '' }); return next(); }
         var fr = new FileReader();
-        fr.onload = function () { items.push({ p: p, d: fr.result }); next(); };
-        fr.onerror = function () { items.push({ p: p, d: '' }); next(); };
+        fr.onload = function () { items.push({ it: it, d: fr.result }); next(); };
+        fr.onerror = function () { items.push({ it: it, d: '' }); next(); };
         fr.readAsDataURL(b);
-      }).catch(function () { items.push({ p: p, d: '' }); next(); });
+      }).catch(function () { items.push({ it: it, d: '' }); next(); });
     })();
     function build() {
       var css = "body{margin:0;background:#E9EDF2;color:#2E3542;font-family:'Songti SC',Georgia,serif;padding:40px 24px}" +
         "h1{font-size:30px;letter-spacing:.3em;text-align:center;font-weight:400}" +
-        ".sub{text-align:center;letter-spacing:.24em;font-size:10px;color:#8B96A8;margin:10px 0 40px}" +
-        ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:26px;max-width:1100px;margin:0 auto}" +
-        "figure{margin:0;background:#fff;padding:12px 12px 16px;border-radius:8px;box-shadow:0 12px 26px rgba(44,56,76,.16)}" +
+        ".sub{text-align:center;letter-spacing:.24em;font-size:10px;color:#8B96A8;margin:10px 0 34px}" +
+        "h2{font-size:17px;letter-spacing:.14em;font-weight:400;margin:38px 0 4px;border-bottom:1px solid #DCE2EA;padding-bottom:8px}" +
+        "h2 small{font-size:10px;letter-spacing:.2em;color:#8B96A8;margin-left:10px}" +
+        ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;max-width:1100px;margin:18px auto 0}" +
+        "figure{margin:0;background:#fff;padding:12px 12px 16px;border-radius:8px;box-shadow:0 12px 26px rgba(44,56,76,.14)}" +
         "figure img{width:100%;border-radius:4px;display:block}" +
         "figcaption{font-size:13px;line-height:1.9;margin-top:10px;color:#5A6578}" +
         "figcaption i{display:block;font-style:normal;font-size:9px;letter-spacing:.2em;color:#B3BDCB;margin-top:6px}" +
         ".end{text-align:center;color:#8B96A8;font-size:11px;letter-spacing:.2em;margin:50px 0 0}";
-      var body = items.map(function (it) {
-        var d = new Date(it.p.at);
-        return '<figure>' + (it.d ? '<img src="' + it.d + '">' : '') +
-          '<figcaption>' + esc(it.p.note || '') + '<i>' + cn(ds(d)) + '</i></figcaption></figure>';
-      }).join('\n');
-      var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">' +
-        '<title>镜花水月 · 影</title><style>' + css + '</style></head><body>' +
-        '<h1>影</h1><div class="sub">ALBUM · ' + list.length + ' 张 · 存于 ' + cn(ds(new Date())) + '</div>' +
-        '<div class="g">' + body + '</div>' +
+      var body = '';
+      groups.forEach(function (g) {
+        body += '<h2>' + esc(g.n) + '<small>' + esc(g.d || '') + ' · ' + g.ps.length + ' 张</small></h2><div class="g">';
+        items.filter(function (x) { return x.it.g === g.n; }).forEach(function (x) {
+          body += '<figure>' + (x.d ? '<img src="' + x.d + '">' : '') +
+            '<figcaption>' + esc(x.it.p.note || '') + '<i>' + cn(ds(new Date(x.it.p.at))) + '</i></figcaption></figure>';
+        });
+        body += '</div>';
+      });
+      var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>镜花水月 · 影</title><style>' + css +
+        '</style></head><body><h1>影</h1><div class="sub">ALBUM · ' + flat.length + ' 张 · ' +
+        (S.albums || []).length + ' 本 · 存于 ' + cn(ds(new Date())) + '</div>' + body +
         '<div class="end">这份相册自带图片 · 哪天这里没了，你手里还有一份</div></body></html>';
       saveText('镜花水月-影-' + todayKey() + '.html', html, 'text/html;charset=utf-8');
       toast('存好了 · 一份能自己打开的相册');
-      foot('导出了一份相册（' + list.length + ' 张）');
+      foot('导出了一份相册（' + flat.length + ' 张）');
     }
   };
 
