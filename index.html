@@ -227,8 +227,11 @@
             <div class="hd"><span class="l">接口 · api</span></div>
             <h3>把话说出去的那一段</h3>
             <p class="hintline" style="margin-bottom:14px">
-              推荐用<b>代理模式</b>：在项目目录跑 <span class="kbd">node server.js</span>，密钥留在服务端，浏览器不接触密钥，也没有跨域问题。
-              直连模式由浏览器直接请求接口，需要对方允许跨域（CORS）。
+              <b>本机用（推荐）：</b>在项目目录跑 <span class="kbd">node server.js</span>，选「代理」，密钥留在服务端，浏览器不接触密钥，也没有跨域问题。<br>
+              <b>静态站点（GitHub Pages 等）：</b>没有服务端，选「直连」由浏览器直接请求接口（需要对方允许跨域）；也可以填一个自己部署的代理地址。
+            </p>
+            <p class="hintline" id="staticNote" style="display:none;margin-bottom:14px;color:var(--wave)">
+              当前跑在静态站点上，默认代理地址不可用 —— 上面「代理地址」留空时会自动改用直连。
             </p>
             <div class="field">
               <label>模式</label>
@@ -236,6 +239,10 @@
                 <button data-m="proxy" class="on">代理</button>
                 <button data-m="direct">直连</button>
               </div>
+            </div>
+            <div class="field" id="proxyField">
+              <label>代理地址（可选 · 留空则用本地 /api/chat）</label>
+              <input class="input" id="apiProxy" placeholder="https://your-proxy.example.com/api/chat">
             </div>
             <div class="field">
               <label>接口形态</label>
