@@ -958,3 +958,16 @@ html[data-radius="sharp"] .btn,html[data-radius="sharp"] .input{border-radius:10
 .nav b:first-child{margin-top:0}
 .bars.tall{margin-bottom:24px}
 .use-models{margin-top:6px}
+
+/* ==========================================================================
+   首页玄关镜（hero-card 右侧）
+   ========================================================================== */
+.mirror-mini{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:2px}
+.mirror-mini svg{display:block;overflow:visible;filter:drop-shadow(0 10px 20px rgba(44,56,76,.16))}
+html[data-theme="dark"] .mirror-mini svg{filter:drop-shadow(0 12px 26px rgba(0,0,0,.55))}
+.mm-ripple{animation:mmRipple 8s ease-in-out infinite}
+.mm-ripple.c2{animation-delay:-2.6s}
+.mm-ripple.c3{animation-delay:-5.2s}
+@keyframes mmRipple{0%,100%{opacity:.28}50%{opacity:.9}}
+html[data-motion="off"] .mm-ripple{animation:none;opacity:.65}
+@media (max-width:560px){.mirror-mini svg{width:80px;height:113px}}

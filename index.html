@@ -126,11 +126,34 @@
               <div class="clock" id="bigClock">21:14</div>
               <div class="hello" id="helloLine">回来啦，<b>小猫</b>。</div>
             </div>
-            <div style="text-align:center;padding-top:4px">
-              <div style="width:34px;height:34px;border-radius:50%;margin:0 auto 14px;
-                background:radial-gradient(circle at 36% 32%,#F4EAC8,var(--moon) 68%);
-                box-shadow:0 0 22px var(--moon-glow),0 0 56px var(--moon-glow);
-                animation:moonglow 5.5s ease-in-out infinite"></div>
+            <div class="mirror-mini">
+              <svg viewBox="0 0 120 170" width="98" height="139" aria-hidden="true">
+                <defs>
+                  <linearGradient id="mmGlass" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" style="stop-color:var(--glass-2)"/>
+                    <stop offset="1" style="stop-color:var(--glass)"/>
+                  </linearGradient>
+                  <radialGradient id="mmMoon" cx="38%" cy="32%" r="80%">
+                    <stop offset="0" stop-color="#FBF4DC"/><stop offset=".55" stop-color="#EFDFAF"/><stop offset="1" stop-color="#CBB277"/>
+                  </radialGradient>
+                  <clipPath id="mmClip"><ellipse cx="60" cy="82" rx="40" ry="60"/></clipPath>
+                </defs>
+                <circle cx="60" cy="50" r="34" style="fill:var(--moon-glow)" opacity=".26"/>
+                <ellipse cx="60" cy="82" rx="40" ry="60" style="fill:url(#mmGlass);stroke:var(--line)" stroke-width="1.2"/>
+                <g clip-path="url(#mmClip)">
+                  <circle cx="60" cy="48" r="11" fill="url(#mmMoon)"/>
+                  <path d="M26 88 C42 85 50 91 60 88 S78 85 94 88" style="stroke:var(--wave)" stroke-width="1" opacity=".5"/>
+                  <path class="mm-ripple c1" d="M44 96 Q60 104 76 96" style="stroke:var(--wave)" stroke-width="1.2"/>
+                  <path class="mm-ripple c1" d="M60 92 L58 84" style="stroke:var(--wave)" stroke-width="1"/>
+                  <path class="mm-ripple c2" d="M30 114 Q42 122 54 114" style="stroke:var(--wave)" stroke-width="1.2"/>
+                  <path class="mm-ripple c2" d="M39 110 L37 102" style="stroke:var(--wave)" stroke-width="1"/>
+                  <path class="mm-ripple c3" d="M66 114 Q78 122 90 114" style="stroke:var(--wave)" stroke-width="1.2"/>
+                  <path class="mm-ripple c3" d="M81 110 L83 102" style="stroke:var(--wave)" stroke-width="1"/>
+                  <path d="M44 132 H60" style="stroke:var(--wave)" stroke-width=".8" opacity=".2"/>
+                  <path d="M62 132 H78" style="stroke:var(--wave)" stroke-width=".8" opacity=".2"/>
+                </g>
+                <ellipse cx="60" cy="82" rx="35" ry="55" fill="none" style="stroke:var(--line)" stroke-width=".7" opacity=".55"/>
+              </svg>
               <div class="hintline" id="daysTip">相伴 · 第 1 天</div>
             </div>
           </div>
