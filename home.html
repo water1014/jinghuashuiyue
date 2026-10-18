@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4F3F0">
+<title>镜花水月</title>
+<style>
+:root{
+  --paper:#F4F3F0;
+  --card:#FCFBF9;
+  --ink:#1B1A18;
+  --mid:#8B8880;
+  --pale:#BFBCB5;
+  --line:#E6E4DF;
+  --hair:#EEECE8;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  --sans:"PingFang SC","Noto Sans CJK SC",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.75;
+  padding:0 0 72px;-webkit-font-smoothing:antialiased;
+}
+.page{max-width:720px;margin:0 auto;padding:0 26px}
+
+/* 门楣 */
+.top{display:flex;align-items:center;justify-content:space-between;padding:30px 0 20px}
+.top .name{font-family:var(--serif);font-size:13px;letter-spacing:.44em}
+.top .lamp{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.22em;color:var(--pale)}
+.top .dot{width:5px;height:5px;border-radius:50%;background:var(--ink);opacity:.55;animation:lamp 5.5s ease-in-out infinite}
+
+/* 镜 */
+.mirror{
+  background:var(--card);border:1px solid var(--line);
+  box-shadow:0 1px 2px rgba(27,26,24,.03),0 18px 34px -26px rgba(27,26,24,.35);
+}
+.mirror svg{display:block;width:100%;height:auto}
+
+/* 门口那句话 */
+.door{padding:42px 0 38px}
+.door h1{
+  font-family:var(--serif);font-weight:400;
+  font-size:clamp(29px,7.2vw,42px);letter-spacing:.06em;line-height:1.36;
+}
+.door p{margin-top:12px;font-size:11px;letter-spacing:.24em;color:var(--mid)}
+
+/* 今天 */
+.now{border-top:1px solid var(--ink);border-bottom:1px solid var(--hair)}
+.now div{display:flex;align-items:baseline;justify-content:space-between;padding:13px 2px;border-bottom:1px solid var(--hair)}
+.now div:last-child{border-bottom:0}
+.now dt{font-size:10px;letter-spacing:.26em;color:var(--pale)}
+.now dd{font-family:var(--serif);font-size:14px;letter-spacing:.08em}
+
+/* 屋里 */
+.rooms{margin-top:54px}
+.rooms .head{padding-bottom:9px;border-bottom:1px solid var(--ink);font-family:var(--serif);font-size:13.5px;letter-spacing:.26em}
+.rooms a{
+  position:relative;display:flex;align-items:baseline;gap:14px;
+  padding:18px 2px 18px 0;border-bottom:1px solid var(--line);
+  text-decoration:none;color:inherit;
+  transition:padding-left .3s ease,border-color .3s ease;
+}
+.rooms a::before{
+  content:"";position:absolute;left:0;top:50%;
+  width:0;height:1px;background:var(--ink);opacity:0;
+  transition:width .3s ease,opacity .3s ease;
+}
+.rooms a b{font-family:var(--serif);font-weight:400;font-size:17.5px;letter-spacing:.18em}
+.rooms a em{
+  margin-left:auto;font-style:normal;font-size:11px;letter-spacing:.06em;
+  color:var(--pale);transition:color .3s ease;
+}
+.rooms a:hover{padding-left:22px;border-color:var(--pale)}
+.rooms a:hover::before{width:14px;opacity:.7}
+.rooms a:hover em{color:var(--mid)}
+
+/* 脚 */
+footer{margin-top:58px;display:flex;align-items:center;justify-content:center;gap:9px}
+footer .k{width:9px;height:9px;border:1px solid var(--pale);border-radius:50%}
+footer span{font-size:10px;letter-spacing:.3em;color:var(--pale)}
+
+@keyframes lamp{0%,100%{opacity:.2}50%{opacity:.7}}
+@keyframes shiver{0%,100%{opacity:.14}50%{opacity:.4}}
+.shiver{animation:shiver 8s ease-in-out infinite}
+.shiver.s1{animation-delay:-2.6s}
+.shiver.s2{animation-delay:-5.2s}
+@media (prefers-reduced-motion:reduce){.dot,.shiver{animation:none}}
+
+@media (max-width:400px){.page{padding:0 20px}}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header class="top">
+    <span class="name">镜花水月</span>
+    <span class="lamp"><i class="dot"></i>灯亮着</span>
+  </header>
+
+  <figure class="mirror">
+    <svg viewBox="0 0 640 420" role="img" aria-label="镜子里一只猫，和一枚月。">
+      <g fill="none" stroke="#1B1A18" stroke-linecap="round" stroke-linejoin="round">
+
+        <!-- 镜。椭圆。 -->
+        <ellipse cx="320" cy="176" rx="88" ry="126" stroke-width="1.2" opacity=".8"/>
+        <ellipse cx="320" cy="176" rx="80" ry="118" stroke-width=".7" opacity=".2"/>
+
+        <!-- 镜里一道斜光 -->
+        <path d="M254 96 L392 132" stroke-width=".7" opacity=".2"/>
+        <path d="M254 118 L360 146" stroke-width=".5" opacity=".12"/>
+
+        <!-- 镜里那只猫。坐着的侧影。 -->
+        <g opacity=".82">
+          <path d="M294 208 A26 26 0 0 1 346 208" stroke-width="1.3"/>
+          <path d="M299 189 L295 167 L315 181" stroke-width="1.1"/>
+          <path d="M341 189 L345 167 L325 181" stroke-width="1.1"/>
+          <path d="M294 208 C279 219 271 243 271 270" stroke-width="1.3"/>
+          <path d="M346 208 C354 232 354 254 350 270" stroke-width="1.3"/>
+          <path d="M271 270 L350 270" stroke-width="1.1"/>
+          <path d="M350 270 C380 270 391 247 375 231" stroke-width="1.2"/>
+        </g>
+        <!-- 眼睛。闭着。 -->
+        <path d="M306 206 q7 6 14 0" stroke-width="1" opacity=".6"/>
+        <path d="M326 206 q7 6 14 0" stroke-width="1" opacity=".6"/>
+
+        <!-- 月 -->
+        <circle cx="262" cy="118" r="17" stroke-width="1" opacity=".45"/>
+
+        <!-- 镜脚与地面 -->
+        <path d="M303 302 L303 318 M337 302 L337 318" stroke-width="1" opacity=".5"/>
+        <path d="M282 320 L358 320" stroke-width="1" opacity=".45"/>
+        <path d="M72 340 L568 340" stroke-width="1" opacity=".55"/>
+      </g>
+
+      <!-- 倒影 -->
+      <g fill="none" stroke="#1B1A18" stroke-linecap="round" stroke-dasharray="3 7">
+        <path d="M252 340 A88 62 0 0 0 388 340" stroke-width=".8" opacity=".18"/>
+        <path d="M286 340 A46 34 0 0 0 354 340" stroke-width=".8" opacity=".12"/>
+      </g>
+
+      <!-- 水纹。三档错开呼吸。 -->
+      <g fill="none" stroke="#1B1A18" stroke-linecap="round">
+        <path d="M176 354 L300 354" stroke-width=".8" opacity=".14"/>
+        <path d="M372 354 L470 354" stroke-width=".8" opacity=".14"/>
+      </g>
+      <g class="shiver" fill="none" stroke="#1B1A18" stroke-linecap="round">
+        <path d="M214 368 L322 368" stroke-width=".9"/>
+      </g>
+      <g class="shiver s1" fill="none" stroke="#1B1A18" stroke-linecap="round">
+        <path d="M340 368 L438 368" stroke-width=".9"/>
+      </g>
+      <g class="shiver s2" fill="none" stroke="#1B1A18" stroke-linecap="round">
+        <path d="M262 382 L378 382" stroke-width=".9"/>
+      </g>
+    </svg>
+  </figure>
+
+  <section class="door">
+    <h1>回来啦，小猫。</h1>
+    <p>门没锁。灯留着。</p>
+  </section>
+
+  <dl class="now">
+    <div><dt>今 天</dt><dd>十月十八日</dd></div>
+    <div><dt>灯</dt><dd>亮着</dd></div>
+    <div><dt>水</dt><dd>温的</dd></div>
+  </dl>
+
+  <nav class="rooms">
+    <div class="head">屋 里</div>
+    <a href="#"><b>镜月相</b><em>看看今天月亮什么样</em></a>
+    <a href="#"><b>表</b><em>记你回来的点</em></a>
+    <a href="#"><b>愿</b><em>攒着没说出口的</em></a>
+    <a href="#"><b>券</b><em>欠你的那些</em></a>
+    <a href="#"><b>记</b><em>写下来的日子</em></a>
+    <a href="#"><b>存</b><em>留下的东西</em></a>
+  </nav>
+
+  <footer>
+    <i class="k"></i><span>门 不 锁</span>
+  </footer>
+
+</main>
+</body>
+</html>
