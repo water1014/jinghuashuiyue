@@ -388,6 +388,8 @@
             <div class="days-num" id="cyLeft">—</div>
             <div class="hintline" id="cyWhen">还没记过。点下面记一次开始的日子。</div>
             <div class="q serif" id="cyNote" style="margin:14px 0 0;font-size:17px;line-height:1.9"></div>
+            <div class="hintline" id="cySync" style="margin-top:14px"></div>
+            <button class="btn ghost sm" id="ambPull2" style="margin-top:10px">从「此间」接一次</button>
           </div>
           <div class="grid duo" style="margin-top:16px">
             <div class="card glass">
@@ -452,6 +454,16 @@
       <!-- ---------------- 表 · 今天 ---------------- -->
       <section class="page" id="p-today">
         <div class="maxw">
+          <div class="card glass">
+            <div class="hd"><span class="l">watch · 手环与今天</span><span class="l" id="tdWatchAt"></span></div>
+            <h3>身上这些数</h3>
+            <div id="tdWatch" style="margin-top:12px"></div>
+            <div class="rowline" style="margin-top:14px">
+              <button class="btn ghost sm" id="ambPull">接一次</button>
+              <button class="btn ghost sm" id="ambPick">选一份文件</button>
+              <span class="hintline">从「此间」只读地取一份，不写回去。</span>
+            </div>
+          </div>
           <div class="card glass">
             <div class="hd"><span class="l">today · 今天这张表</span><span class="l" id="tdDate"></span></div>
             <h3>要干的事</h3>
@@ -855,6 +867,17 @@
                 <button class="btn ghost" id="importAll">导入</button>
                 <button class="btn danger" id="wipe">清空所有数据</button>
               </div>
+              <div class="rowline" style="margin-top:10px">
+                <button class="btn ghost" id="restoreSafety">找回上一份</button>
+                <span class="hintline">导入或清空之前，会自动存一份在这台机器上。</span>
+              </div>
+              <div class="field" style="margin-top:16px"><label>此间数据地址（留空用默认）</label>
+                <div class="rowline">
+                  <input class="input" id="ambUrl" placeholder="http://127.0.0.1:5173/api/ambient" style="flex:1">
+                  <button class="btn ghost" id="ambUrlSave">记下</button>
+                </div>
+              </div>
+              <p class="hintline" style="margin-top:8px">本地服务跑起来后，表与潮两页会自动取数。远端站点打不开本地地址时，就用表页的「选一份文件」。</p>
             </div>
           </div>
 
