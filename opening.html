@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080D18">
+<title>镜花水月 · 开屏</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   镜花水月 · 开屏
+   水面 → 月光 → 镜面成形 → 裂纹 → 碎 → 镜片悬停
+   九片：正中「镜」，外圈八片。
+   ========================================================================== */
+:root{
+  --bg:#070B15;
+  --ink:#E6EBF4; --ink-2:#9DAAC2; --ink-3:#66748E; --ink-4:#3E4A61;
+  --moon:#E8D9A8; --moon-soft:rgba(232,217,168,.42);
+  --wave:#8FA6CC; --edge:rgba(198,218,248,.30);
+  --serif:"Cormorant Garamond","Noto Serif SC",Georgia,"Songti SC",serif;
+  --sans:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --noise:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg)}
+body{
+  font-family:var(--sans);font-weight:300;color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- 背景 · 天与水 ---------------- */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.sky{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(126,150,196,.24), transparent 62%),
+    radial-gradient(90% 60% at 82% 96%, rgba(96,86,150,.20), transparent 66%),
+    linear-gradient(180deg,#080D19 0%,#0A1122 44%,#0C1526 68%,#070B15 100%);
+  opacity:0;transition:opacity 1.4s ease;
+}
+.sky.on{opacity:1}
+
+/* 天上那轮月 */
+.sky-moon{
+  position:absolute;left:50%;top:9.5%;width:62px;height:62px;margin-left:-31px;border-radius:50%;
+  background:radial-gradient(circle at 38% 33%,#FFFDF2,#F2E6C0 52%,#D8C48C 100%);
+  box-shadow:0 0 34px rgba(232,217,168,.40),0 0 96px rgba(232,217,168,.20);
+  opacity:0;transform:translateY(-16px) scale(.86);
+  transition:opacity 1.5s ease,transform 1.5s cubic-bezier(.2,.7,.2,1);
+}
+.sky-moon.on{opacity:1;transform:none}
+.sky-moon::after{
+  content:"";position:absolute;inset:-40px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,217,168,.13),transparent 66%);
+  animation:breathe 7s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+
+/* 水面 */
+.water{
+  position:absolute;left:0;right:0;bottom:0;height:36%;
+  background:linear-gradient(180deg,rgba(143,166,204,.10),rgba(8,13,25,.86) 62%,#070B15 100%);
+  opacity:0;transition:opacity 1.6s ease .3s;
+}
+.water.on{opacity:1}
+.water::before{ /* 地平线 */
+  content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(198,218,248,.34) 26%,rgba(232,217,168,.30) 50%,rgba(198,218,248,.34) 74%,transparent);
+}
+.water::after{ /* 水下那点月光 */
+  content:"";position:absolute;left:50%;top:-6%;width:52%;height:120%;margin-left:-26%;
+  background:radial-gradient(ellipse at 50% 0%,rgba(232,217,168,.13),transparent 68%);
+  filter:blur(6px);
+}
+.wave{
+  position:absolute;left:-10%;right:-10%;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(143,166,204,.30) 22%,rgba(198,218,248,.46) 50%,rgba(143,166,204,.30) 78%,transparent);
+  filter:blur(.6px);
+}
+.wave.w1{top:14%;animation:drift 13s ease-in-out infinite}
+.wave.w2{top:30%;opacity:.6;animation:drift 17s ease-in-out infinite reverse}
+.wave.w3{top:52%;opacity:.4;animation:drift 21s ease-in-out infinite}
+@keyframes drift{0%,100%{transform:translateX(-3%) scaleX(1)}50%{transform:translateX(3%) scaleX(1.06)}}
+.grain{position:absolute;inset:0;background-image:var(--noise);opacity:.045;mix-blend-mode:overlay}
+
+/* ---------------- 舞台 ---------------- */
+.stage{
+  position:fixed;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  padding-bottom:5vh;
+}
+.mirror{
+  position:relative;width:var(--size,420px);height:var(--size,420px);
+  opacity:0;transform:scale(.94);
+  transition:opacity 1.1s ease,transform 1.1s cubic-bezier(.2,.7,.2,1);
+  will-change:transform,opacity;
+}
+.mirror.on{opacity:1;transform:none}
+
+/* 镜底：只为吃掉碎缝，碎的那一刻就退场 */
+.base{
+  position:absolute;inset:0;border-radius:50%;
+  background:var(--face);
+  box-shadow:inset 0 0 0 1px rgba(198,218,248,.16),inset 0 0 70px rgba(10,16,30,.6);
+  transition:opacity .26s ease;
+}
+.base.off{opacity:0}
+
+/* 镜片群 */
+.shards{position:absolute;inset:0}
+.shard-move{
+  position:absolute;inset:0;pointer-events:none;
+  transition:transform 1s cubic-bezier(.16,.84,.24,1),opacity .5s ease;
+  will-change:transform;
+}
+.shard-float{position:absolute;inset:0;pointer-events:none;animation:float 7.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(-5px)}50%{transform:translateY(5px)}}
+
+/* 只有被裁出形状的那一层接指针。空白处不许挡道 */
+.shard{
+  position:absolute;inset:0;pointer-events:auto;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .45s ease,opacity .45s ease;
+  will-change:transform,filter;
+}
+.shards.dim .shard{opacity:.40;filter:saturate(.62)}
+.shard-move.hot .shard{opacity:1;filter:brightness(1.22) saturate(1.08);transform:scale(1.045)}
+
+.face{
+  position:absolute;inset:0;
+  background:var(--face);
+}
+.face-grain{position:absolute;inset:0;background-image:var(--noise);opacity:.05;mix-blend-mode:overlay}
+.sweep{
+  position:absolute;inset:0;
+  background:linear-gradient(104deg,transparent 40%,rgba(255,255,255,.15) 49%,rgba(255,255,255,.03) 54%,transparent 62%);
+  background-size:250% 100%;background-position:180% 0;
+  animation:sweep 8.5s linear infinite;
+}
+@keyframes sweep{from{background-position:190% 0}to{background-position:-90% 0}}
+
+.label{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  text-align:center;pointer-events:none;
+  opacity:0;transition:opacity .9s ease;
+}
+.label.on{opacity:1}
+.label .c{
+  font-family:var(--serif);font-size:30px;line-height:1;letter-spacing:.06em;
+  color:#F4F8FF;text-shadow:0 0 18px rgba(198,218,248,.55),0 0 40px rgba(143,166,204,.35);
+}
+.label .e{
+  font-family:var(--serif);font-style:italic;font-size:9.5px;letter-spacing:.20em;
+  color:rgba(157,170,194,.86);text-transform:lowercase;
+}
+.label.center .c{font-size:24px}
+.label.center .e{font-size:8.5px}
+
+/* 裂纹 */
+.cracks{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.cracks path{
+  fill:none;stroke:rgba(226,238,255,.86);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset .3s cubic-bezier(.4,0,.3,1);
+}
+.cracks path.glow{stroke:rgba(150,190,255,.30);stroke-width:5}
+.cracks.fade{opacity:0;transition:opacity .45s ease}
+
+/* 镜原位的痕 */
+.ghost{
+  position:absolute;inset:0;border-radius:50%;
+  box-shadow:inset 0 0 0 1px rgba(143,166,204,.16);
+  opacity:0;transition:opacity 1.6s ease .2s;
+}
+.ghost.on{opacity:1}
+
+/* ---------------- HUD ---------------- */
+.hud{position:fixed;inset:0;z-index:5;pointer-events:none}
+.brand{
+  position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom));
+  text-align:center;opacity:0;transition:opacity 1s ease;
+}
+.brand.on{opacity:1}
+.brand .c{font-family:var(--serif);font-size:19px;letter-spacing:.42em;text-indent:.42em;color:#DCE6F6}
+.brand .e{font-family:var(--serif);font-style:italic;font-size:9.5px;letter-spacing:.30em;color:var(--ink-3);margin-top:6px}
+.brand .h{font-size:11px;letter-spacing:.14em;color:var(--ink-4);margin-top:12px}
+
+.replay{
+  position:absolute;right:calc(16px + env(safe-area-inset-right));top:calc(16px + env(safe-area-inset-top));
+  pointer-events:auto;border:1px solid rgba(143,166,204,.26);background:rgba(20,28,48,.5);
+  color:var(--ink-2);font-family:var(--sans);font-size:11.5px;letter-spacing:.14em;
+  padding:8px 15px;border-radius:99px;cursor:pointer;backdrop-filter:blur(10px);
+  opacity:0;transition:opacity 1s ease,color .3s,border-color .3s;
+}
+.replay.on{opacity:1}
+.replay:hover{color:var(--ink);border-color:rgba(143,166,204,.5)}
+
+/* 点开某一片时的字幕 */
+.caption{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  text-align:center;opacity:0;transition:opacity .5s ease;pointer-events:none;
+}
+.caption.on{opacity:1}
+.caption .c{font-family:var(--serif);font-size:56px;color:#F6FAFF;text-shadow:0 0 40px rgba(198,218,248,.6)}
+.caption .n{font-size:12px;letter-spacing:.4em;text-indent:.4em;color:var(--ink-2);margin-top:14px}
+.caption .e{font-family:var(--serif);font-style:italic;font-size:11px;letter-spacing:.24em;color:var(--ink-4);margin-top:6px}
+.caption .tip{font-size:11px;letter-spacing:.16em;color:var(--ink-4);margin-top:22px}
+
+@media (max-width:520px){
+  .label .c{font-size:25px}
+  .label.center .c{font-size:21px}
+  .sky-moon{width:50px;height:50px;margin-left:-25px}
+}
+@media (prefers-reduced-motion:reduce){
+  .shard-float,.sweep,.wave,.sky-moon::after{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="sky" id="sky"></div>
+  <div class="sky-moon" id="skyMoon"></div>
+  <div class="water" id="water">
+    <span class="wave w1"></span><span class="wave w2"></span><span class="wave w3"></span>
+  </div>
+  <div class="grain"></div>
+</div>
+
+<div class="stage">
+  <div class="mirror" id="mirror">
+    <div class="base" id="base"></div>
+    <div class="shards" id="shards"></div>
+    <svg class="cracks" id="cracks" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg>
+    <div class="ghost" id="ghost"></div>
+  </div>
+</div>
+
+<div class="hud">
+  <button class="replay" id="replay">再看一次</button>
+  <div class="brand" id="brand">
+    <div class="c">镜花水月</div>
+    <div class="e">Moon in the Water</div>
+    <div class="h">点一片碎镜，进一处</div>
+  </div>
+  <div class="caption" id="caption"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ====================== 配置 ====================== */
+  var PAGES = [
+    { k:'mirror',  c:'镜', e:'mirror',  n:'关系主页' },   // 正中这一片
+    { k:'room',    c:'水', e:'room',    n:'房间' },
+    { k:'pills',   c:'药', e:'pills',   n:'药方' },
+    { k:'moon',    c:'月', e:'moon',    n:'月相' },
+    { k:'photo',   c:'影', e:'album',   n:'相册' },
+    { k:'cycle',   c:'潮', e:'tide',    n:'经期' },
+    { k:'pomo',    c:'钟', e:'focus',   n:'番茄' },
+    { k:'diary',   c:'记', e:'diary',   n:'日记' },
+    { k:'archive', c:'存', e:'archive', n:'存档' }
+  ];
+  var N = 8;          // 外圈片数
+  var VB = 1000;      // 逻辑坐标
+  var C = VB / 2;
+  var R = VB / 2 - 6; // 镜半径
+  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 镜面本身。九片共用同一份，所以拼起来是一整块连续的镜子
+  var FACE = [
+    'radial-gradient(circle at 50% 33%, rgba(255,253,244,.94) 0%, rgba(244,232,196,.62) 5.5%, rgba(214,200,164,.20) 13%, rgba(150,170,210,.07) 26%, transparent 41%)',
+    'radial-gradient(circle at 50% 64%, rgba(126,150,190,.30), rgba(28,40,68,.74) 62%, rgba(10,16,30,.92) 100%)',
+    'linear-gradient(148deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.03) 34%, rgba(255,255,255,.02) 62%, rgba(255,255,255,.10) 100%)'
+  ].join(',');
+
+  var $ = function (s) { return document.querySelector(s); };
+  var rnd = function (a, b) { return a + Math.random() * (b - a); };
+  var deg = function (d) { return d * Math.PI / 180; };
+
+  var mirror = $('#mirror');
+  var shardsBox = $('#shards');
+  var cracks = $('#cracks');
+  var base = $('#base');
+  var ghost = $('#ghost');
+  var brand = $('#brand');
+  var replayBtn = $('#replay');
+  var caption = $('#caption');
+
+  /* ====================== 几何：径向裂纹 ====================== */
+  function build() {
+    var i, k;
+    var ang = [];      // 每道裂纹的基准角度（度）
+    var inner = [];    // 每道裂纹起点的半径
+    var rays = [];     // 每道裂纹的折线（从内圈到边缘）
+    var endAng = [];   // 每道裂纹落在边缘时的实际角度
+
+    for (i = 0; i < N; i++) {
+      ang.push(-90 + i * (360 / N) + rnd(-13, 13));
+      inner.push(rnd(92, 112));
+    }
+    for (i = 0; i < N; i++) {
+      var A = ang[i];
+      var r0 = inner[i];
+      var pts = [];
+      var steps = 3;
+      var last = A;
+      pts.push([C + Math.cos(deg(A)) * r0, C + Math.sin(deg(A)) * r0]);
+      for (k = 1; k <= steps; k++) {
+        var t = k / steps;
+        var rr = r0 + (R - r0) * t;
+        // 垂直方向的抖动。越靠外越明显，裂纹才是从中心笔直、到边上才碎的
+        var perp = rnd(-1, 1) * (R * 0.062) * t * t;
+        last = A + (perp / rr) * (180 / Math.PI);
+        pts.push([C + Math.cos(deg(last)) * rr, C + Math.sin(deg(last)) * rr]);
+      }
+      rays.push(pts);
+      endAng.push(last);
+    }
+
+    // 外圈八片
+    var outer = [];
+    for (i = 0; i < N; i++) {
+      var j = (i + 1) % N;
+      var poly = [];
+      for (k = 0; k < rays[i].length; k++) poly.push(rays[i][k]);
+      var a0 = endAng[i];
+      var a1 = endAng[j] + (endAng[j] < a0 ? 360 : 0);
+      for (k = 1; k <= 3; k++) {
+        var aa = a0 + (a1 - a0) * k / 3;
+        poly.push([C + Math.cos(deg(aa)) * R, C + Math.sin(deg(aa)) * R]);
+      }
+      for (k = rays[j].length - 1; k >= 0; k--) poly.push(rays[j][k]);
+
+      var mid = (a0 + a1) / 2;
+      outer.push({
+        poly: poly,
+        label: [C + Math.cos(deg(mid)) * R * 0.60, C + Math.sin(deg(mid)) * R * 0.60],
+        dir: mid
+      });
+    }
+
+    // 正中一片
+    var core = [];
+    for (i = 0; i < N; i++) core.push(rays[i][0]);
+    outer.unshift({
+      poly: core,
+      label: [C, C],
+      dir: -90,
+      center: true
+    });
+
+    return { rays: rays, endAng: endAng, pieces: outer };
+  }
+
+  function centroid(poly) {
+    var x = 0, y = 0;
+    for (var i = 0; i < poly.length; i++) { x += poly[i][0]; y += poly[i][1]; }
+    return [x / poly.length, y / poly.length];
+  }
+  function pct(pts) {
+    return pts.map(function (p) {
+      return (p[0] / VB * 100).toFixed(3) + '% ' + (p[1] / VB * 100).toFixed(3) + '%';
+    }).join(',');
+  }
+  function pathOf(pts, close) {
+    return pts.map(function (p, i) {
+      return (i ? 'L' : 'M') + p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+    }).join(' ') + (close ? ' Z' : '');
+  }
+
+  /* ====================== 渲染 ====================== */
+  var geo = build();
+  var nodes = [];   // 每片的 DOM
+
+  document.documentElement.style.setProperty('--face', FACE);
+
+  geo.pieces.forEach(function (piece, idx) {
+    var page = PAGES[idx] || PAGES[0];
+    var cen = centroid(piece.poly);
+
+    var move = document.createElement('div');
+    move.className = 'shard-move';
+    move.style.transformOrigin = (cen[0] / VB * 100) + '% ' + (cen[1] / VB * 100) + '%';
+
+    var fl = document.createElement('div');
+    fl.className = 'shard-float';
+    fl.style.animationDelay = (-idx * 0.83) + 's';
+
+    var sh = document.createElement('div');
+    sh.className = 'shard';
+    sh.style.clipPath = 'polygon(' + pct(piece.poly) + ')';
+    sh.style.webkitClipPath = 'polygon(' + pct(piece.poly) + ')';
+
+    var face = document.createElement('div');
+    face.className = 'face';
+    var gr = document.createElement('div');
+    gr.className = 'face-grain';
+    var sw = document.createElement('div');
+    sw.className = 'sweep';
+    sw.style.animationDelay = (-idx * 0.5) + 's';
+
+    var lb = document.createElement('div');
+    lb.className = 'label' + (piece.center ? ' center' : '');
+    lb.style.left = (piece.label[0] / VB * 100) + '%';
+    lb.style.top = (piece.label[1] / VB * 100) + '%';
+    lb.innerHTML = '<span class="c">' + page.c + '</span><span class="e">' + page.e + '</span>';
+
+    sh.appendChild(face);
+    sh.appendChild(gr);
+    sh.appendChild(sw);
+    sh.appendChild(lb);
+    fl.appendChild(sh);
+    move.appendChild(fl);
+    shardsBox.appendChild(move);
+
+    nodes.push({
+      move: move, shard: sh, label: lb, page: page,
+      dir: piece.dir, center: !!piece.center,
+      seed: idx
+    });
+  });
+
+  // 裂纹：一道亮的，一道晕的，成对出场
+  var crackPairs = [];
+  (function drawCracks() {
+    var NS = 'http://www.w3.org/2000/svg';
+    var glowG = document.createElementNS(NS, 'g');
+    var mainG = document.createElementNS(NS, 'g');
+    function add(d) {
+      var a = document.createElementNS(NS, 'path');
+      a.setAttribute('d', d); a.setAttribute('pathLength', '1');
+      var b = document.createElementNS(NS, 'path');
+      b.setAttribute('d', d); b.setAttribute('pathLength', '1'); b.setAttribute('class', 'glow');
+      glowG.appendChild(b); mainG.appendChild(a);
+      crackPairs.push([a, b]);
+    }
+    geo.rays.forEach(function (pts) { add(pathOf(pts, false)); });
+    add(pathOf(geo.pieces[0].poly, true));   // 内圈那一环
+    cracks.appendChild(glowG);
+    cracks.appendChild(mainG);
+  })();
+
+  /* ====================== 时间线 ====================== */
+  var T = { sky: 60, moon: 260, mirror: 1000, crack: 2250, shatter: 2980, label: 3720, settle: 4180 };
+  var timers = [];
+  var playing = false;
+  var settled = false;
+  var shattered = false;
+
+  function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
+  function clearAll() { timers.forEach(clearTimeout); timers = []; }
+
+  function reset() {
+    clearAll();
+    settled = false;
+    shattered = false;
+    setHot(null);
+    $('#sky').classList.remove('on');
+    $('#skyMoon').classList.remove('on');
+    $('#water').classList.remove('on');
+    mirror.classList.remove('on');
+    base.classList.remove('off');
+    ghost.classList.remove('on');
+    brand.classList.remove('on');
+    caption.classList.remove('on');
+    replayBtn.classList.remove('on');
+    cracks.classList.remove('fade');
+    crackPairs.forEach(function (pair) {
+      pair.forEach(function (p) { p.style.transition = 'none'; p.style.strokeDashoffset = '1'; });
+    });
+    nodes.forEach(function (n) {
+      n.move.style.transition = 'none';
+      n.move.style.transform = 'none';
+      n.move.style.opacity = '1';
+      n.shard.style.transition = 'none';
+      n.shard.style.transform = '';
+      n.shard.style.filter = '';
+      n.shard.style.opacity = '';
+      n.label.classList.remove('on');
+    });
+    void mirror.offsetWidth;   // 强制回流，让上面那些 none 立刻落地
+    nodes.forEach(function (n) {
+      n.move.style.transition = '';
+      n.shard.style.transition = '';
+    });
+  }
+
+  // 碎开后的落点。参数化，是因为「少动效」模式要一步到位
+  function spread(instant) {
+    nodes.forEach(function (n) {
+      var dist = n.center ? 22 : 74;
+      var a = deg(n.dir);
+      n.move.style.transition = instant ? 'none' : 'transform 1s cubic-bezier(.16,.84,.24,1)';
+      n.move.style.transform =
+        'translate(' + (Math.cos(a) * dist / 10).toFixed(2) + '%,' + (Math.sin(a) * dist / 10).toFixed(2) + '%) rotate(' +
+        (n.seed % 2 ? 3.4 : -3.4) + 'deg)';
+    });
+    shattered = true;
+  }
+
+  function play() {
+    reset();
+    playing = true;
+
+    if (REDUCE) { at(30, function () { spread(true); finish(); }); return; }
+
+    at(T.sky, function () { $('#sky').classList.add('on'); });
+    at(T.moon, function () { $('#skyMoon').classList.add('on'); $('#water').classList.add('on'); });
+    at(T.mirror, function () { mirror.classList.add('on'); });
+
+    // 裂纹一道一道爬出来
+    at(T.crack, function () {
+      crackPairs.forEach(function (pair, i) {
+        pair.forEach(function (p) {
+          p.style.transition = 'stroke-dashoffset .34s cubic-bezier(.4,0,.3,1) ' + (i * 0.055) + 's';
+          p.style.strokeDashoffset = '0';
+        });
+      });
+    });
+
+    // 碎
+    at(T.shatter, function () {
+      base.classList.add('off');
+      nodes.forEach(function (n, i) {
+        var dist = n.center ? rnd(16, 30) : rnd(56, 96);
+        var a = deg(n.dir + rnd(-16, 16));
+        n.move.style.transition = 'transform 1.05s cubic-bezier(.16,.84,.24,1) ' + (i * 0.028) + 's';
+        n.move.style.transform =
+          'translate(' + (Math.cos(a) * dist / 10).toFixed(2) + '%,' + (Math.sin(a) * dist / 10).toFixed(2) + '%) rotate(' +
+          rnd(-8, 8).toFixed(2) + 'deg)';
+      });
+      shattered = true;
+      at(420, function () { cracks.classList.add('fade'); });
+    });
+
+    at(T.label, function () {
+      nodes.forEach(function (n, i) { at(i * 60, function () { n.label.classList.add('on'); }); });
+    });
+
+    at(T.settle, finish);
+  }
+
+  function finish() {
+    playing = false;
+    settled = true;
+    if (!shattered) spread(false);
+    nodes.forEach(function (n) { n.label.classList.add('on'); });
+    cracks.classList.add('fade');
+    base.classList.add('off');
+    ghost.classList.add('on');
+    brand.classList.add('on');
+    replayBtn.classList.add('on');
+  }
+
+  /* ====================== 交互 ====================== */
+  var hot = null;
+  function setHot(m) {
+    if (hot === m) return;
+    if (hot) hot.classList.remove('hot');
+    hot = m;
+    if (hot) { hot.classList.add('hot'); shardsBox.classList.add('dim'); }
+    else shardsBox.classList.remove('dim');
+  }
+
+  shardsBox.addEventListener('pointerover', function (e) {
+    if (!settled) return;
+    setHot(e.target.closest ? e.target.closest('.shard-move') : null);
+  });
+  shardsBox.addEventListener('pointerout', function (e) {
+    var m = e.target.closest ? e.target.closest('.shard-move') : null;
+    if (m && m === hot && !(e.relatedTarget && m.contains(e.relatedTarget))) setHot(null);
+  });
+  shardsBox.addEventListener('pointerleave', function () { setHot(null); });
+
+  shardsBox.addEventListener('click', function (e) {
+    if (playing) { clearAll(); finish(); return; }
+    if (!settled) return;
+    var m = e.target.closest && e.target.closest('.shard-move');
+    if (!m) return;
+    var node = null;
+    nodes.forEach(function (n) { if (n.move === m) node = n; });
+    if (!node) return;
+
+    setHot(null);
+    var cen = centroid(geo.pieces[node.seed].poly);
+    var toX = 50 - cen[0] / VB * 100;
+    var toY = 50 - cen[1] / VB * 100;
+
+    nodes.forEach(function (n) {
+      if (n === node) return;
+      n.move.style.transition = 'transform .6s ease,opacity .6s ease';
+      n.move.style.opacity = '0';
+    });
+
+    m.style.transition = 'transform .95s cubic-bezier(.36,0,.2,1),opacity .5s ease .55s';
+    m.style.transform = 'translate(' + toX.toFixed(2) + '%,' + toY.toFixed(2) + '%) scale(9)';
+    m.style.opacity = '0';
+
+    at(780, function () {
+      caption.innerHTML =
+        '<div class="c">' + node.page.c + '</div>' +
+        '<div class="n">' + node.page.n + '</div>' +
+        '<div class="e">' + node.page.e + '</div>' +
+        '<div class="tip">页面还没接上 · 这一步只走个样子</div>';
+      caption.classList.add('on');
+    });
+    at(2500, function () {
+      caption.classList.remove('on');
+      at(520, play);
+    });
+  });
+
+  replayBtn.addEventListener('click', function (e) { e.stopPropagation(); play(); });
+  document.addEventListener('click', function () {
+    if (playing) { clearAll(); finish(); }
+  });
+
+  /* ====================== 尺寸 ====================== */
+  function size() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var s = Math.min(w * 0.88, h * 0.50, 620);
+    mirror.style.setProperty('--size', s + 'px');
+  }
+  size();
+  window.addEventListener('resize', size);
+  window.addEventListener('orientationchange', function () { setTimeout(size, 220); });
+
+  play();
+})();
+</script>
+</body>
+</html>
