@@ -353,61 +353,134 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     }
   })();
 
-  /* ====================== 几何：径向裂纹 ====================== */
+  /* ====================== 几何：不规则碎镜 ====================== */
+  function hash(s) {
+    var h = 2166136261, i;
+    for (i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 16777619) >>> 0; }
+    return h;
+  }
+  function key2(p, q) {
+    var a = p[0].toFixed(2) + ',' + p[1].toFixed(2);
+    var b = q[0].toFixed(2) + ',' + q[1].toFixed(2);
+    return a < b ? a + '|' + b : b + '|' + a;
+  }
+  // 每条裂纹的中点折角。同一段裂纹两侧算出来的必须一样，缝才对得上。
+  function bend(p, q) {
+    var k = key2(p, q);
+    var x1 = p[0], y1 = p[1], x2 = q[0], y2 = q[1];
+    if ((x1.toFixed(2) + ',' + y1.toFixed(2)) > (x2.toFixed(2) + ',' + y2.toFixed(2))) {
+      var t = x1; x1 = x2; x2 = t; t = y1; y1 = y2; y2 = t;
+    }
+    var dx = x2 - x1, dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var off = ((hash(k) % 200) / 100 - 1) * len * 0.16;
+    return [(x1 + x2) / 2 - dy / len * off, (y1 + y2) / 2 + dx / len * off];
+  }
+  // 半平面裁剪。留下离 a 更近的那一侧。
+  function clipHalf(poly, a, b) {
+    var out = [], n = poly.length, i;
+    function f(p) {
+      return (p[0] - a[0]) * (p[0] - a[0]) + (p[1] - a[1]) * (p[1] - a[1])
+           - (p[0] - b[0]) * (p[0] - b[0]) - (p[1] - b[1]) * (p[1] - b[1]);
+    }
+    for (i = 0; i < n; i++) {
+      var cur = poly[i], nxt = poly[(i + 1) % n];
+      var sc = f(cur), sn = f(nxt);
+      if (sc <= 0) out.push(cur);
+      if ((sc < 0 && sn > 0) || (sc > 0 && sn < 0)) {
+        var t = sc / (sc - sn);
+        out.push([cur[0] + (nxt[0] - cur[0]) * t, cur[1] + (nxt[1] - cur[1]) * t]);
+      }
+    }
+    return out;
+  }
+
   function build() {
-    var i, k;
-    var ang = [], inner = [], rays = [], endAng = [];
-
-    for (i = 0; i < N; i++) {
-      ang.push(-90 + i * (360 / N) + rnd(-13, 13));
-      inner.push(rnd(90, 112));
+    var i, j, a, rr, p;
+    var SEG = 96;
+    var rim = [];
+    for (i = 0; i < SEG; i++) {
+      a = i / SEG * Math.PI * 2;
+      rim.push([C + Math.cos(a) * R, C + Math.sin(a) * R]);
     }
+
+    // 主种子。正中一片，外圈八片。入口就是它们。
+    var seeds = [[C, C]];
     for (i = 0; i < N; i++) {
-      var A = ang[i];
-      var r0 = inner[i];
-      var pts = [];
-      var steps = 3;
-      var last = A;
-      pts.push([C + Math.cos(deg(A)) * r0, C + Math.sin(deg(A)) * r0]);
-      for (k = 1; k <= steps; k++) {
-        var t = k / steps;
-        var rr = r0 + (R - r0) * t;
-        // 越靠外抖得越狠。裂纹才是从镜心笔直、到边上才碎的。
-        var perp = rnd(-1, 1) * (R * 0.062) * t * t;
-        last = A + (perp / rr) * (180 / Math.PI);
-        pts.push([C + Math.cos(deg(last)) * rr, C + Math.sin(deg(last)) * rr]);
+      a = deg(-90 + i * (360 / N) + rnd(-14, 14));
+      rr = R * rnd(0.60, 0.68);
+      seeds.push([C + Math.cos(a) * rr, C + Math.sin(a) * rr]);
+    }
+    var MAIN = seeds.length;
+
+    // 边缘的碎渣。只在外圈撒，镜心那一块留整。
+    var guard = 0;
+    while (seeds.length < MAIN + 16 && guard++ < 8000) {
+      a = rnd(0, Math.PI * 2);
+      rr = R * rnd(0.88, 0.995);
+      p = [C + Math.cos(a) * rr, C + Math.sin(a) * rr];
+      var ok = true, dx, dy;
+      for (j = 0; j < MAIN; j++) {
+        dx = p[0] - seeds[j][0]; dy = p[1] - seeds[j][1];
+        if (dx * dx + dy * dy < Math.pow(R * 0.24, 2)) { ok = false; break; }
       }
-      rays.push(pts);
-      endAng.push(last);
+      if (!ok) continue;
+      for (j = MAIN; j < seeds.length; j++) {
+        dx = p[0] - seeds[j][0]; dy = p[1] - seeds[j][1];
+        if (dx * dx + dy * dy < Math.pow(R * 0.12, 2)) { ok = false; break; }
+      }
+      if (ok) seeds.push(p);
     }
 
+    // 每个种子的领地
+    var cells = [];
+    for (i = 0; i < seeds.length; i++) {
+      var poly = rim;
+      for (j = 0; j < seeds.length; j++) {
+        if (j === i) continue;
+        poly = clipHalf(poly, seeds[i], seeds[j]);
+        if (poly.length < 3) break;
+      }
+      cells.push(poly);
+    }
+
+    // 每条边折一下。折点两侧共用，拼起来才严丝合缝。
     var pieces = [];
-    for (i = 0; i < N; i++) {
-      var j = (i + 1) % N;
-      var poly = [];
-      for (k = 0; k < rays[i].length; k++) poly.push(rays[i][k]);
-      var a0 = endAng[i];
-      var a1 = endAng[j] + (endAng[j] < a0 ? 360 : 0);
-      for (k = 1; k <= 3; k++) {
-        var aa = a0 + (a1 - a0) * k / 3;
-        poly.push([C + Math.cos(deg(aa)) * R, C + Math.sin(deg(aa)) * R]);
+    for (i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      if (cell.length < 3) continue;
+      var out = [];
+      for (j = 0; j < cell.length; j++) {
+        out.push(cell[j]);
+        out.push(bend(cell[j], cell[(j + 1) % cell.length]));
       }
-      for (k = rays[j].length - 1; k >= 0; k--) poly.push(rays[j][k]);
-
-      var mid = (a0 + a1) / 2;
+      var cen = centroid(out);
       pieces.push({
-        poly: poly,
-        label: [C + Math.cos(deg(mid)) * R * 0.60, C + Math.sin(deg(mid)) * R * 0.60],
-        dir: mid,
-        center: false
+        poly: out,
+        cen: cen,
+        at: seeds[i],
+        dir: Math.atan2(cen[1] - C, cen[0] - C) * 180 / Math.PI,
+        center: i === 0,
+        isMain: i < MAIN,
+        seed: i,
+        page: i < MAIN ? (PAGES[i] || PAGES[0]) : null
       });
     }
 
-    var core = [];
-    for (i = 0; i < N; i++) core.push(rays[i][0]);
-    pieces.unshift({ poly: core, label: [C, C], dir: -90, center: true });
+    // 裂纹。相邻两片共用一条，去重之后只画一次。
+    var seen = {}, lines = [];
+    for (i = 0; i < cells.length; i++) {
+      var c2 = cells[i];
+      for (j = 0; j < c2.length; j++) {
+        var p1 = c2[j], p2 = c2[(j + 1) % c2.length];
+        var kk = key2(p1, p2);
+        if (seen[kk]) continue;
+        seen[kk] = 1;
+        lines.push([p1, bend(p1, p2), p2]);
+      }
+    }
 
-    return { rays: rays, pieces: pieces };
+    return { pieces: pieces, lines: lines };
   }
 
   function centroid(poly) {
@@ -445,8 +518,9 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
   document.documentElement.style.setProperty('--face', FACE);
 
   geo.pieces.forEach(function (piece, idx) {
-    var page = PAGES[idx] || PAGES[0];
-    var cen = centroid(piece.poly);
+    var main = piece.isMain;
+    var page = piece.page;
+    var cen = piece.cen;
     var clip = 'polygon(' + pct(piece.poly) + ')';
 
     var move = document.createElement('div');
@@ -461,45 +535,50 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     sh.className = 'shard';
     sh.style.clipPath = clip;
     sh.style.webkitClipPath = clip;
+    if (!main) sh.style.pointerEvents = 'none';
 
     var face = document.createElement('div');
     face.className = 'face';
-
-    var sw = document.createElement('div');
-    sw.className = 'sweep';
-    sw.style.animationDelay = (-idx * 0.6).toFixed(2) + 's';
-
-    // 这一片自己带着的那一小段银框
-    var fsvg = el('svg', { 'class':'frame', viewBox:'0 0 1000 1000', preserveAspectRatio:'none' });
-    fsvg.appendChild(el('ellipse', { 'class':'ring', cx:C, cy:C, rx:RING, ry:RING }));
-    fsvg.appendChild(el('ellipse', { 'class':'inner', cx:C, cy:C, rx:RING_IN, ry:RING_IN }));
-    var g1 = el('path', { 'class':'glint', d: arcOf(RING, RING, -102, -32) });
-    g1.style.animationDelay = (-idx * 0.5).toFixed(2) + 's';
-    fsvg.appendChild(g1);
-    var g2 = el('path', { 'class':'glint', d: arcOf(RING, RING, 78, 148) });
-    g2.style.animationDelay = (-idx * 0.5 - 3.2).toFixed(2) + 's';
-    g2.style.opacity = '.45';
-    fsvg.appendChild(g2);
-
-    var lb = document.createElement('div');
-    lb.className = 'label' + (piece.center ? ' center' : '');
-    lb.style.left = (piece.label[0] / VB * 100).toFixed(3) + '%';
-    lb.style.top = (piece.label[1] / VB * 100).toFixed(3) + '%';
-    lb.innerHTML = '<span class="c">' + page.c + '</span>' +
-                   '<span class="line"></span>' +
-                   '<span class="e">' + page.e + '</span>';
-
     sh.appendChild(face);
-    sh.appendChild(sw);
-    sh.appendChild(fsvg);
-    sh.appendChild(lb);
+
+    var lb = null;
+
+    if (main) {
+      var sw = document.createElement('div');
+      sw.className = 'sweep';
+      sw.style.animationDelay = (-idx * 0.6).toFixed(2) + 's';
+      sh.appendChild(sw);
+
+      // 这一片自己带着的那一小段银框
+      var fsvg = el('svg', { 'class':'frame', viewBox:'0 0 1000 1000', preserveAspectRatio:'none' });
+      fsvg.appendChild(el('ellipse', { 'class':'ring', cx:C, cy:C, rx:RING, ry:RING }));
+      fsvg.appendChild(el('ellipse', { 'class':'inner', cx:C, cy:C, rx:RING_IN, ry:RING_IN }));
+      var g1 = el('path', { 'class':'glint', d: arcOf(RING, RING, -102, -32) });
+      g1.style.animationDelay = (-idx * 0.5).toFixed(2) + 's';
+      fsvg.appendChild(g1);
+      var g2 = el('path', { 'class':'glint', d: arcOf(RING, RING, 78, 148) });
+      g2.style.animationDelay = (-idx * 0.5 - 3.2).toFixed(2) + 's';
+      g2.style.opacity = '.45';
+      fsvg.appendChild(g2);
+      sh.appendChild(fsvg);
+
+      lb = document.createElement('div');
+      lb.className = 'label' + (piece.center ? ' center' : '');
+      lb.style.left = (piece.at[0] / VB * 100).toFixed(3) + '%';
+      lb.style.top = (piece.at[1] / VB * 100).toFixed(3) + '%';
+      lb.innerHTML = '<span class="c">' + page.c + '</span>' +
+                     '<span class="line"></span>' +
+                     '<span class="e">' + page.e + '</span>';
+      sh.appendChild(lb);
+    }
+
     fl.appendChild(sh);
     move.appendChild(fl);
     shardsBox.appendChild(move);
 
     nodes.push({
       move: move, shard: sh, label: lb, page: page,
-      dir: piece.dir, center: !!piece.center, seed: idx
+      dir: piece.dir, center: !!piece.center, isMain: main, seed: idx, cen: cen
     });
   });
 
@@ -507,20 +586,26 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
   var crackPairs = [];
   (function drawCracks() {
     var glowG = el('g', {}), mainG = el('g', {});
-    function add(d) {
+    var tmp = [];
+    function add(d, dist) {
       var a = el('path', { d:d, pathLength:1 });
       var b = el('path', { d:d, pathLength:1, 'class':'glow' });
       glowG.appendChild(b); mainG.appendChild(a);
-      crackPairs.push([a, b]);
+      tmp.push({ a:a, b:b, d:dist });
     }
-    geo.rays.forEach(function (pts) { add(pathOf(pts, false)); });
-    add(pathOf(geo.pieces[0].poly, true));   // 内圈那一环
+    geo.lines.forEach(function (ln) {
+      var dx = (ln[1][0] - C) / VB, dy = (ln[1][1] - C) / VB;
+      add(pathOf(ln, false), Math.sqrt(dx * dx + dy * dy));
+    });
+    // 裂纹从镜心往外爬
+    tmp.sort(function (p, q) { return p.d - q.d; });
+    tmp.forEach(function (o) { crackPairs.push([o.a, o.b]); });
     cracks.appendChild(glowG);
     cracks.appendChild(mainG);
   })();
 
   /* ====================== 时间线 ====================== */
-  var T = { sky:60, moon:280, mirror:940, crack:2150, shatter:3180, label:3960, settle:4460 };
+  var T = { sky:60, moon:280, mirror:940, crack:2100, shatter:3350, label:4150, settle:4650 };
   var timers = [];
   var playing = false, settled = false, shattered = false;
 
@@ -553,7 +638,7 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
       n.move.style.opacity = '1';
       n.shard.style.transition = 'none';
       n.shard.style.transform = '';
-      n.label.classList.remove('on');
+      if (n.label) n.label.classList.remove('on');
     });
     void mirror.offsetWidth;   // 强制回流，让上面那些 none 立刻落地
     nodes.forEach(function (n) {
@@ -596,7 +681,7 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     at(T.crack, function () {
       crackPairs.forEach(function (pair, i) {
         pair.forEach(function (p) {
-          p.style.transition = 'stroke-dashoffset .36s cubic-bezier(.4,0,.3,1) ' + (i * 0.055).toFixed(3) + 's';
+          p.style.transition = 'stroke-dashoffset .36s cubic-bezier(.4,0,.3,1) ' + (i * 0.008).toFixed(3) + 's';
           p.style.strokeDashoffset = '0';
         });
       });
@@ -620,7 +705,11 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     });
 
     at(T.label, function () {
-      nodes.forEach(function (n, i) { at(i * 62, function () { n.label.classList.add('on'); }); });
+      var k = 0;
+      nodes.forEach(function (n) {
+        if (!n.label) return;
+        at(k++ * 62, function () { n.label.classList.add('on'); });
+      });
     });
 
     at(T.settle, finish);
@@ -630,7 +719,7 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     playing = false;
     settled = true;
     if (!shattered) spread(false);
-    nodes.forEach(function (n) { n.label.classList.add('on'); });
+    nodes.forEach(function (n) { if (n.label) n.label.classList.add('on'); });
     cracks.classList.add('fade');
     base.classList.add('off');
     halo.classList.add('on');
@@ -666,10 +755,10 @@ body{font-family:var(--sans);font-weight:300;color:var(--ink);-webkit-font-smoot
     if (!m) return;
     var node = null;
     nodes.forEach(function (n) { if (n.move === m) node = n; });
-    if (!node) return;
+    if (!node || !node.isMain) return;
 
     setHot(null);
-    var cen = centroid(geo.pieces[node.seed].poly);
+    var cen = node.cen;
     var dx = SIZE.w * (0.5 - cen[0] / VB);
     var dy = SIZE.h * (0.5 - cen[1] / VB);
 
