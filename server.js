@@ -206,35 +206,6 @@ async function handleTTS(req, res, raw) {
   return forwardJSON(req, res, target, { Authorization: 'Bearer ' + key }, b);
 }
 
-/* ------------------------------ 此间 / 手环（只读） ------------------------------ */
-const AMBIENT_DIR = process.env.AMBIENT_DIR || '/sdcard/Download/Operit';
-function readJSON(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } }
-function ambient() {
-  const W = path.join(AMBIENT_DIR, 'whereabouts');
-  const C = path.join(AMBIENT_DIR, 'cijian');
-  const health = readJSON(path.join(W, 'health.json'));
-  const state = readJSON(path.join(W, 'state.json'));
-  const timeline = readJSON(path.join(W, 'timeline.json'));
-  const events = readJSON(path.join(W, 'events.json'));
-  const weather = readJSON(path.join(C, 'weather.json'));
-  const moods = readJSON(path.join(C, 'moods.json'));
-  const conf = readJSON(path.join(C, 'config.json'));
-  const rows = (moods && moods.rows) || [];
-  const out = {
-    ok: true, at: Date.now(), dir: AMBIENT_DIR,
-    health: health, state: state, timeline: timeline, events: events, weather: weather,
-    mood: rows.length ? rows[rows.length - 1] : null,
-    period: (conf && conf.periodSetup) || null,
-    relation: conf ? {
-      userName: conf.userName || '', companionName: conf.companionName || '',
-      loveDays: conf.loveDays || 0
-    } : null
-  };
-  out.missing = ['health', 'state', 'timeline', 'events', 'weather', 'mood', 'period']
-    .filter(function (k) { return !out[k]; });
-  return out;
-}
-
 /* ------------------------------ 静态 ------------------------------ */
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname);
@@ -254,16 +225,8 @@ function serveStatic(req, res, pathname) {
 const server = http.createServer((req, res) => {
   const u = new URL_.URL(req.url, 'http://localhost');
 
-  if (req.method === 'GET' && u.pathname === '/api/ambient') {
-    res.writeHead(200, {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*'
-    });
-    return res.end(JSON.stringify(ambient()));
-  }
-
   if (req.method === 'GET' && u.pathname === '/api/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, mock: !pickKey({}) }));
   }
 

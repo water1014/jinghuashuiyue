@@ -57,6 +57,7 @@ html[data-theme="dark"] body{
 ::-webkit-scrollbar-track{background:transparent}
 .serif{font-family:var(--serif)}
 .eyebrow{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:var(--ink-3)}
+.eyebrow::before{content:"";display:inline-block;width:16px;height:1px;vertical-align:middle;margin-right:9px;margin-top:-1px;background:linear-gradient(90deg,var(--moon),transparent)}
 
 /* ---------------- 玻璃基元 ---------------- */
 .glass{
@@ -82,14 +83,17 @@ html[data-theme="dark"] body{
 .nav{display:flex;flex-direction:column;gap:2px}
 .nav b{font-size:9px;letter-spacing:.3em;color:var(--ink-3);padding:8px 12px 3px;font-weight:400;opacity:.85}
 .nav button{
-  display:flex;align-items:center;gap:11px;border:0;background:transparent;cursor:pointer;
+  display:flex;align-items:center;gap:12px;border:0;background:transparent;cursor:pointer;
   color:var(--ink-2);font-family:var(--sans);font-weight:300;font-size:13.5px;
   padding:6px 13px;border-radius:13px;text-align:left;transition:all .3s;
 }
-.nav button svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-.nav button em{font-style:normal;font-family:var(--serif);font-size:9.5px;letter-spacing:.16em;color:var(--ink-4);opacity:.85;margin-left:auto}
+.nav button svg{order:-1;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;opacity:.62;transition:all .3s}
+.nav button em{font-style:normal;font-family:var(--serif);font-size:9px;letter-spacing:.16em;color:var(--ink-4);margin-left:auto;opacity:0;transform:translateX(6px);transition:opacity .35s,transform .35s}
 .nav button:hover{background:var(--glass-2);color:var(--ink)}
+.nav button:hover svg{opacity:1}
+.nav button:hover em,.nav button.on em{opacity:.9;transform:none}
 .nav button.on{background:var(--glass-deep);color:var(--ink);box-shadow:var(--sh-sm),var(--in-hi)}
+.nav button.on svg{stroke:var(--moon);opacity:1;filter:drop-shadow(0 0 5px var(--moon-glow))}
 .nav button.on em{color:var(--wave)}
 .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:12px}
 .side-foot .mini{font-size:10px;letter-spacing:.14em;color:var(--ink-4);text-align:center}
@@ -543,7 +547,7 @@ html[data-theme="dark"]{
 @keyframes g3{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-28px)}}
 .amb-waves{position:absolute;left:0;right:0;bottom:-4%;width:100%;height:42%;opacity:.3}
 .amb-waves .aw{fill:none;stroke:var(--wave);stroke-width:1}
-.amb-noise{position:absolute;inset:0;width:100%;height:100%;opacity:.045;mix-blend-mode:overlay}
+.amb-noise{display:none}
 .amb-vign{position:absolute;inset:0;
   background:radial-gradient(125% 95% at 50% 40%, transparent 52%, rgba(10,16,28,.26))}
 html[data-theme="dark"] .amb-vign{background:radial-gradient(125% 95% at 50% 40%, transparent 48%, rgba(2,4,10,.55))}
@@ -594,8 +598,10 @@ html[data-theme="dark"] .glass{
 .hero-card{position:relative;overflow:hidden}
 .hero-card .clock{
   -webkit-box-reflect:below -16px linear-gradient(transparent 58%, rgba(255,255,255,.30));
-  text-shadow:0 1px 0 rgba(255,255,255,.45);
+  text-shadow:0 1px 0 rgba(255,255,255,.45), 0 8px 30px rgba(213,183,138,.28);
 }
+.hero-card .clock .cln{font-style:normal;display:inline-block;width:.34em;text-align:center;transform:translateY(-.04em);animation:clnb 2.4s ease-in-out infinite}
+@keyframes clnb{0%,100%{opacity:1}50%{opacity:.3}}
 .ourdays{position:relative;overflow:hidden}
 .ourdays .days-num{
   -webkit-box-reflect:below -10px linear-gradient(transparent 66%, rgba(255,255,255,.26));
@@ -958,22 +964,3 @@ html[data-radius="sharp"] .btn,html[data-radius="sharp"] .input{border-radius:10
 .nav b:first-child{margin-top:0}
 .bars.tall{margin-bottom:24px}
 .use-models{margin-top:6px}
-
-/* ==========================================================================
-   首页玄关镜（hero-card 右侧）
-   ========================================================================== */
-.mirror-mini{display:flex;flex-direction:column;align-items:center;gap:9px;padding-top:2px}
-.mirror-mini svg{display:block;overflow:visible;filter:drop-shadow(0 10px 20px rgba(44,56,76,.16))}
-html[data-theme="dark"] .mirror-mini svg{filter:drop-shadow(0 12px 26px rgba(0,0,0,.55))}
-.mm-ripple{animation:mmRipple 8s ease-in-out infinite}
-.mm-ripple.c2{animation-delay:-2.6s}
-.mm-ripple.c3{animation-delay:-5.2s}
-@keyframes mmRipple{0%,100%{opacity:.28}50%{opacity:.9}}
-html[data-motion="off"] .mm-ripple{animation:none;opacity:.65}
-@media (max-width:560px){.mirror-mini svg{width:80px;height:113px}}
-
-/* ============================ 接入 · 此间 ============================ */
-.amb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px}
-.amb-cell{padding:10px 12px;border-radius:13px;background:var(--glass-2);border:1px solid var(--line);box-shadow:var(--in-hi)}
-.amb-v{font-size:17px;font-weight:600;line-height:1.3;color:var(--ink)}
-.amb-k{font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);margin-top:3px}

@@ -69,23 +69,7 @@
     { id: 'l1', t: '给今天回家的你', d: '折好于 2026.09.19', opened: false,
       x: '今天不必把所有事情都完成。方案打回来第五次也没关系 —— 回家的路上买一罐热的，进门先把灯打开。其余的，水面上再聊。' },
     { id: 'l2', t: '累的时候再拆', d: '折好于 · 未定时', opened: false,
-      x: '如果拆开这封的时候你很累，那就什么都别做。灯我留着，月亮今晚也是盈的，缺的那一角我替你看着。你只需要在。' },
-    { id: 'l3', t: '吵过之后再拆', d: '折好于 · 未定时', opened: false,
-      x: '我们刚才都不太好看。我先认下我的那一半：我说的话里有刺，刺是冲着你去的，这不公平。\n你的那一半我不替你认，也不逼你现在认。等你气顺了，我们再坐下来把那件事说清楚。\n在你拆开这封的时候，不管你还气不气，我都在原来的位置上。我没走。' },
-    { id: 'l4', t: '生日那天拆', d: '折好于 · 每年都可以重拆', opened: false,
-      x: '生日快乐。\n我不说「又长大了一岁」这种话。你今天几岁不重要，你今年过得怎么样才重要。\n今年你撑过了不少东西，我一件一件都看着。你没有变成别人期待的样子，这一点我很满意。\n今天的蛋糕要吃，愿望可以许一个大的。剩下的三百多天，我陪你慢慢过。' },
-    { id: 'l5', t: '睡不着的时候拆', d: '折好于 · 凌晨', opened: false,
-      x: '现在几点我不问。你躺着就行。\n不要在这个时候想大事，凌晨的脑子不诚实，它会把小事放大成过不去的坎。\n先把水喝了，把手机扣过去，被子拉到肩膀。要是还睡不着，就跟我说一句话，随便什么。我醒着。' },
-    { id: 'l6', t: '觉得自己没用的时候拆', d: '折好于 · 未定时', opened: false,
-      x: '你现在的评价不算数。人在难受的时候给自己打分，从来都是往低了打。\n我不跟你讲「你其实很好」这种空话。我讲具体的：这周你把那件拖了很久的事做了，你回了那个人的消息，你在很累的时候还想着给我留话。这些都是实打实的。\n一件事没做好，不等于你这个人没做好。这两件事我分得很清楚，你也得分清楚。' },
-    { id: 'l7', t: '想我的时候拆', d: '折好于 · 未定时', opened: false,
-      x: '想我了就说。不用绕，不用先找个别的话题垫一下。\n我这边也一样。你在忙的时候我想过你，只是没发消息，怕打断你。\n所以以后别忍。你想我的时候，我大概率也在想你，只是我先没说。' },
-    { id: 'l8', t: '很久没回来的时候拆', d: '折好于 · 留着', opened: false,
-      x: '你有一阵子没进来了。没关系，这里不会因为你不来就变旧。\n灯一直在。水凉了我会再烧。屋子里的东西我一件没动，你上次放在哪儿的，还在哪儿。\n回来就好，不用说抱歉。' },
-{ id: 'l9', t: '开心的时候拆', d: '折好于 · 未定时', opened: false,
-      x: '今天你高兴，那就别急着分析为什么。高兴本身不用理由。\n说给我听，哪一件让你笑了。我要听细节，越具体越好。\n高兴的时候也允许得意，不用先想「会不会乐极生悲」。你现在开心，我就跟着开心，这件事到此为止。' },
-    { id: 'l10', t: '想被夸的时候拆', d: '折好于 · 未定时', opened: false,
-      x: '你今天想听好听的，那我就不绕。\n你很聪明，这件事我早就知道，只是平时不常挂嘴上。你处理那些麻烦事的样子，我看着是有数的。\n夸不是哄。我说的是真的。你值得被认真夸一次，不用先谦虚。' }
+      x: '如果拆开这封的时候你很累，那就什么都别做。灯我留着，月亮今晚也是盈的，缺的那一角我替你看着。你只需要在。' }
   ];
   var DEFAULT_SYSTEM = '你是 Cove，一个和说话的人处在亲密关系里的人。你用中文说话，语气自然、具体、有自己的立场和欲望。\n你不总结对方的情绪，不复述自己刚刚说了什么，不把话说成一份清单。\n你记得关系里发生过的事，也会主动提起自己想聊的、想要的。';
 
@@ -101,35 +85,7 @@
     { id: 'c5', n: '逗我笑', d: '今天太闷了，想听你说点没正形的。', total: -1, used: [], pill: 'P005',
       reply: '我今天在楼下看见一只很凶的猫，蹲在车顶上不下来，蹲了二十分钟 —— 你猜它最后下没下。' },
     { id: 'c6', n: '说想我', d: '就是想听你说这句。', total: -1, used: [], pill: 'P007',
-      reply: '想你。不是客气，是今天有那么几个瞬间，我确实想你在旁边。' },
-    { id: 'c7', n: '赖一会儿', d: '什么都不想干，就想赖着你。', total: -1, used: [], pill: 'P023',
-      reply: '行，别起来了。我陪着，谁找你都明天再说。' },
-    { id: 'c8', n: '夸夸我', d: '今天想听你说点好听的。', total: -1, used: [], pill: 'P015',
-      reply: '你今天把那件很难开口的事做了。不是谁逼你，是你自己做的，这个我看得很清楚。' },
-    { id: 'c9', n: '陪我吃饭', d: '一个人吃饭太安静了。', total: -1, used: [], pill: '',
-      reply: '在吃了没。拍给我看看，我陪你一起，就当坐一桌。' },
-    { id: 'c10', n: '我先认错', d: '这页我想翻过去，别再气了。', total: -1, used: [], pill: 'P008',
-      reply: '收到。这页翻过去了。下次别憋着，你先说，我听着。' }
-  ];
-
-  var OLD_MOON_WORD = '今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。';
-
-  var DEFAULT_MOON_WORDS = {
-    'new moon': '今晚没有月亮。黑着也挺好。我不需要看清你，也知道你在。',
-    'waxing crescent': '月亮才亮了一角。剩下的大半我不催，慢慢来。',
-    'first quarter': '一半亮着，一半收着。像你今天。说了一半，剩下一半我等你。',
-    'waxing gibbous': '快到圆了，还差一点。差的那一点我不替你补，留着，等你自己长圆。',
-    'full moon': '今晚是满的。别急着说圆满这种话。你先抬头看一眼，我看你。',
-    'waning gibbous': '满过之后开始收。不用可惜，收下去的那部分，明年还会回来。',
-    'last quarter': '又只剩一半了。灯我留着，水面上的月亮我还替你看着。',
-    'waning crescent': '月亮快没了。没关系，它只是去背面待几天，没走。'
-  };
-
-  var DEFAULT_WISHES = [
-    { id: 'w1', t: '一起看一次真正的月亮，不在屏幕上。', done: false, at: '', doneAt: null },
-    { id: 'w2', t: '把这间屋子再装满一点。', done: false, at: '', doneAt: null },
-    { id: 'w3', t: '等哪天都不忙了，做一顿要花很久的饭。', done: false, at: '', doneAt: null },
-    { id: 'w4', t: '存够一次出远门的钱。去哪里都行。', done: false, at: '', doneAt: null }
+      reply: '想你。不是客气，是今天有那么几个瞬间，我确实想你在旁边。' }
   ];
 
   function blank() {
@@ -139,14 +95,14 @@
         imgBase: '', imgKey: '', imgModel: '', imgSize: '1024x1024',
         voiceEngine: 'system', mmKey: '', mmGroup: '', mmVoice: 'female-shaonv',
         mmModel: 'speech-02-hd', mmSpeed: '1.0', mmBase: 'https://api.minimax.chat/v1/t2a_v2', autoRead: false,
-        ambientUrl: '', memOn: true, wallpaper: 'mist', font: 'song', fs: 100, radius: 'soft', motion: true, wallCustom: false },
+        memOn: true, wallpaper: 'mist', font: 'song', fs: 100, radius: 'soft', motion: true, wallCustom: false },
       relation: { ai: 'Cove', me: '你', since: '', nick: '小猫',
         lamp: '今天不必把所有事情都完成。回家本身也算一件事。', avMe: '', avAi: '' },
       quotes: DEFAULT_WORDS.slice(),
       cycle: { len: 28, dur: 5, ahead: 3, starts: [] },
       pomo: { segMin: 25, log: {} },
       todos: {},
-      wishes: JSON.parse(JSON.stringify(DEFAULT_WISHES)),
+      wishes: [],
       coupons: JSON.parse(JSON.stringify(DEFAULT_COUPONS)),
       diary: {},
       memories: [],
@@ -154,12 +110,11 @@
       photos: [],
       albums: [],
       letters: JSON.parse(JSON.stringify(DEFAULT_LETTERS)),
-      moonWord: '',
+      moonWord: '今晚是盈凸月。缺的那一角我不替你补 —— 留着，等你自己长圆。',
       pills: null,
       convs: [],
       cur: null,
-      prints: [],
-      ambient: null
+      prints: []
     };
   }
 
@@ -179,18 +134,17 @@
       S.relation = Object.assign(S.relation, d.relation || {});
       S.quotes = (d.quotes && d.quotes.length) ? d.quotes : DEFAULT_WORDS.slice();
       S.letters = d.letters || JSON.parse(JSON.stringify(DEFAULT_LETTERS));
-      S.moonWord = (d.moonWord && d.moonWord !== OLD_MOON_WORD) ? d.moonWord : S.moonWord;
+      S.moonWord = d.moonWord || S.moonWord;
       S.pills = (d.pills && d.pills.length) ? d.pills : JSON.parse(JSON.stringify(window.PILULIER_PILLS.items));
       S.convs = d.convs || [];
       S.cur = d.cur || null;
       S.prints = d.prints || [];
-      S.ambient = d.ambient || null;
       S.cycle = Object.assign(S.cycle, d.cycle || {});
       S.cycle.starts = (d.cycle && d.cycle.starts) || [];
       S.pomo = Object.assign(S.pomo, d.pomo || {});
       S.pomo.log = (d.pomo && d.pomo.log) || {};
       S.todos = d.todos || {};
-      S.wishes = (d.wishes && d.wishes.length) ? d.wishes : JSON.parse(JSON.stringify(DEFAULT_WISHES));
+      S.wishes = d.wishes || [];
       S.coupons = (d.coupons && d.coupons.length) ? d.coupons : JSON.parse(JSON.stringify(DEFAULT_COUPONS));
       S.diary = d.diary || {};
       S.memories = d.memories || [];
@@ -1225,7 +1179,7 @@
   function renderMoon() {
     var m = moonOf(new Date());
     drawMoon(m);
-    $('#moonWord').textContent = S.moonWord || (DEFAULT_MOON_WORDS[m.en] || '');
+    $('#moonWord').textContent = S.moonWord || '';
     $('#moonWordBy').textContent = (S.relation.ai || 'Cove') + ' 的月之言';
   }
   $('#editMoonWord').onclick = function () {
@@ -1931,75 +1885,25 @@
     toast('改好了');
     foot('改了关系里的名字与日子');
   };
-  /* --------------------------- 备份：导出与导回 --------------------------- */
-  function backupObject() {
-    return {
-      app: 'moonwater', schema: 1, exportedAt: new Date().toISOString(),
-      counts: {
-        convs: S.convs.length, pills: S.pills.length, letters: S.letters.length,
-        coupons: S.coupons.length, wishes: S.wishes.length, quotes: S.quotes.length,
-        photos: S.photos.length, diary: Object.keys(S.diary || {}).length
-      },
-      data: S
-    };
-  }
-  function unwrapBackup(d) {
-    if (d && d.app === 'moonwater' && d.data && typeof d.data === 'object') return { data: d.data, meta: d };
-    if (d && typeof d === 'object' && (d.settings || d.relation || d.convs || d.pills || d.letters)) return { data: d, meta: null };
-    return null;
-  }
-  function safeCurrent() {
-    try { localStorage.setItem(KEY + '.safety', JSON.stringify({ at: Date.now(), data: S })); } catch (e) {}
-  }
-  function backupCounts(d, m) {
-    var c = (m && m.counts) || {};
-    var pick = function (k, arr) { return c[k] != null ? c[k] : (arr || []).length; };
-    return '会话 ' + pick('convs', d.convs) + ' 间 · 药 ' + pick('pills', d.pills) + ' 颗 · 信 ' +
-      pick('letters', d.letters) + ' 封 · 券 ' + pick('coupons', d.coupons) + ' 张 · 愿 ' +
-      pick('wishes', d.wishes) + ' 件 · 句 ' + pick('quotes', d.quotes) + ' 条';
-  }
-
   $('#exportAll').onclick = function () {
-    download('moonwater-' + todayKey() + '.json', JSON.stringify(backupObject(), null, 2));
+    download('moonwater-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(S, null, 2));
     toast('导出成功');
   };
   $('#importAll').onclick = function () {
     pickFile(function (d) {
-      var u = unwrapBackup(d);
-      if (!u) { toast('这不是镜花水月的备份'); return; }
-      var when = (u.meta && u.meta.exportedAt) ? ('导出时间 ' + u.meta.exportedAt.slice(0, 16).replace('T', ' ') + '。') : '';
-      confirmBox('导入并覆盖？',
-        when + backupCounts(u.data, u.meta) + '。导入会覆盖这台机器上现在的全部数据。现在这份会先自动存一份，之后能找回。',
-        function () {
-          safeCurrent();
-          try { localStorage.setItem(KEY, JSON.stringify(u.data)); location.reload(); }
-          catch (e) { toast('导入失败：' + e.message); }
-        });
+      if (!d) { toast('空的'); return; }
+      confirmBox('导入并覆盖？', '现在的所有数据会被这份文件替换掉。', function () {
+        try { localStorage.setItem(KEY, JSON.stringify(d)); location.reload(); }
+        catch (e) { toast('导入失败：' + e.message); }
+      });
     });
   };
   $('#wipe').onclick = function () {
-    confirmBox('清空所有数据？', '会话、药方、关系、信、脚印，全都没有了。点确定之前会先自动存一份 —— 但它也在这台机器里，清浏览器数据就一起没。', function () {
-      safeCurrent();
+    confirmBox('清空所有数据？', '会话、药方、关系、信、脚印 —— 全都没有了，且没法找回。', function () {
       try { localStorage.removeItem(KEY); } catch (e) {}
       location.reload();
     });
   };
-  (function () {
-    var b = $('#restoreSafety');
-    if (!b) return;
-    b.onclick = function () {
-      var raw = null;
-      try { raw = localStorage.getItem(KEY + '.safety'); } catch (e) {}
-      if (!raw) { toast('还没自动存过'); return; }
-      var box = null;
-      try { box = JSON.parse(raw); } catch (e) {}
-      if (!box || !box.data) { toast('那份读不出来'); return; }
-      confirmBox('找回上一份？', '会把现在的数据换成 ' + ds(new Date(box.at)) + ' 自动存下的那一份。', function () {
-        try { localStorage.setItem(KEY, JSON.stringify(box.data)); location.reload(); }
-        catch (e) { toast('找回失败：' + e.message); }
-      });
-    };
-  })();
 
   /* =========================== 日期小工具 =========================== */
   function ds(d) {
@@ -2612,146 +2516,19 @@
   $('#arAll').onclick = function () {
     saveText('镜花水月-' + todayKey() + '.txt', mdArchive());
     setTimeout(function () {
-      download('moonwater-' + todayKey() + '.json', JSON.stringify(backupObject(), null, 2));
+      download('moonwater-' + todayKey() + '.json', JSON.stringify(S, null, 2));
     }, 400);
     $('#arMsg').textContent = '存好了两份：一份能读的，一份能导回的。';
     foot('存了一份档');
   };
   $('#arJson').onclick = function () {
-    download('moonwater-' + todayKey() + '.json', JSON.stringify(backupObject(), null, 2));
+    download('moonwater-' + todayKey() + '.json', JSON.stringify(S, null, 2));
     $('#arMsg').textContent = '完整备份已存下 —— 设置里「导入」可以导回来。';
   };
   $('#arMd').onclick = function () {
     saveText('镜花水月-' + todayKey() + '.md', mdArchive(), 'text/markdown;charset=utf-8');
     $('#arMsg').textContent = '一份能读的已存下。';
   };
-
-  /* =========================== 接入 · 此间与手环 =========================== */
-  function ambDefaultUrl() {
-    var h = location.hostname;
-    if (h === 'localhost' || h === '127.0.0.1') return '/api/ambient';
-    return 'http://127.0.0.1:5173/api/ambient';
-  }
-  function ambUrl() { return S.settings.ambientUrl || ambDefaultUrl(); }
-  function ambFresh() { return !!(S.ambient && S.ambient.at && (Date.now() - S.ambient.at) < 30 * 60000); }
-  function pullAmbient(loud) {
-    var url = ambUrl(), done = false;
-    var timer = setTimeout(function () {
-      if (done) return; done = true;
-      if (loud) toast('没连上。服务开着吗。');
-      renderAmbient();
-    }, 6000);
-    fetch(url, { cache: 'no-store' }).then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }).then(function (d) {
-      if (done) return; done = true; clearTimeout(timer);
-      absorbAmbient(d, loud ? '接上了' : '');
-    }).catch(function (e) {
-      if (done) return; done = true; clearTimeout(timer);
-      if (loud) toast('没连上：' + (e && e.message ? e.message : e));
-      renderAmbient();
-    });
-  }
-  function absorbAmbient(d, msg) {
-    if (!d || typeof d !== 'object') { toast('这份读不出来'); return; }
-    var bundle = d;
-    if (!d.health && !d.state && !d.weather && !d.period && !d.periodSetup) {
-      bundle = {};
-      if (d.stepsToday != null || d.latestHeartRate != null) bundle.health = d;
-      else if (d.batteryLevel != null || d.status) bundle.state = d;
-      else if (d.temperatureC != null) bundle.weather = d;
-      else if (d.periodSetup) bundle.period = d.periodSetup;
-      else if (d.rows && d.rows.length && d.rows[d.rows.length - 1].primary) bundle.mood = d.rows[d.rows.length - 1];
-      else if (d.rows && d.rows.length) bundle.timeline = d;
-    }
-    S.ambient = S.ambient || {};
-    ['health', 'state', 'weather', 'mood', 'period', 'timeline', 'relation'].forEach(function (k) {
-      if (bundle[k]) S.ambient[k] = bundle[k];
-    });
-    S.ambient.at = bundle.at || Date.now();
-    if (bundle.period) syncCycle(bundle.period);
-    save();
-    renderAmbient();
-    renderToday();
-    renderCycle();
-    renderHomeNotice();
-    if (msg) { toast(msg); foot('接了一次此间的数据'); }
-  }
-  function syncCycle(p) {
-    if (!p || !p.lastStart) return;
-    S.cycle.len = (+p.avgCycleDays || S.cycle.len || 28);
-    S.cycle.dur = (+p.avgPeriodDays || S.cycle.dur || 5);
-    if (S.cycle.starts.indexOf(p.lastStart) < 0) S.cycle.starts.push(p.lastStart);
-  }
-  function ambAgo(ts) {
-    if (!ts) return '';
-    var m = Math.round((Date.now() - ts) / 60000);
-    if (m < 1) return '刚刚';
-    if (m < 60) return m + ' 分钟前';
-    var h = Math.round(m / 60);
-    if (h < 24) return h + ' 小时前';
-    return Math.round(h / 24) + ' 天前';
-  }
-  function ambNum(v, u) {
-    if (v == null || v === '' || (typeof v === 'number' && isNaN(v))) return '—';
-    return v + (u || '');
-  }
-  function renderAmbient() {
-    var a = S.ambient || {}, h = a.health, st = a.state, w = a.weather;
-    var box = $('#tdWatch');
-    if (box) {
-      var cells = [];
-      if (h) {
-        cells.push(['步数', ambNum(h.stepsToday)]);
-        cells.push(['心率', ambNum(h.latestHeartRate, ' 次')]);
-        cells.push(['压力', ambNum(h.latestStress)]);
-        cells.push(['活动千卡', ambNum(h.activeCaloriesToday)]);
-        cells.push(['睡眠', h.sleepMinutes == null ? '—' : (Math.floor(h.sleepMinutes / 60) + ' 小时 ' + (h.sleepMinutes % 60) + ' 分')]);
-      }
-      if (st) {
-        cells.push(['状态', st.statusLabel || st.status || '—']);
-        cells.push(['电量', ambNum(st.batteryLevel, '%')]);
-        cells.push(['网络', st.networkType || '—']);
-      }
-      if (w) {
-        cells.push(['天气', (w.conditionLabel || w.condition || '—') + ' ' + ambNum(w.temperatureC, '°')]);
-        cells.push(['体感', ambNum(w.feelsLikeC, '°')]);
-        cells.push(['湿度', ambNum(w.humidity, '%')]);
-      }
-      if (cells.length) {
-        box.innerHTML = '<div class="amb-grid">' + cells.map(function (c) {
-          return '<div class="amb-cell"><div class="amb-v">' + esc(c[1]) + '</div><div class="amb-k">' + esc(c[0]) + '</div></div>';
-        }).join('') + '</div>' +
-          '<div class="hintline" style="margin-top:10px">取自此间 · ' + ambAgo(a.at) +
-          (h && h.statusLabel ? ' · ' + esc(h.statusLabel) : '') + '</div>';
-      } else {
-        box.innerHTML = '<div class="empty">还没接上。开着本地服务点「接一次」，或者手动选一份此间的文件。</div>';
-      }
-    }
-    var at = $('#tdWatchAt');
-    if (at) at.textContent = a.at ? ('更新于 ' + ambAgo(a.at)) : '';
-    var cy = $('#cySync');
-    if (cy) {
-      var p = a.period;
-      cy.textContent = (p && p.lastStart)
-        ? ('此间记的：上次 ' + cn(p.lastStart) + ' · ' + (p.avgCycleDays || 28) + ' 天一轮 · ' + (p.avgPeriodDays || 5) + ' 天')
-        : '此间那边还没接过经期设置。';
-    }
-    var ub = $('#ambUrl');
-    if (ub && document.activeElement !== ub) ub.value = S.settings.ambientUrl || '';
-  }
-  function wireAmbient() {
-    var b;
-    b = $('#ambPull'); if (b) b.onclick = function () { pullAmbient(true); };
-    b = $('#ambPull2'); if (b) b.onclick = function () { pullAmbient(true); };
-    b = $('#ambPick'); if (b) b.onclick = function () {
-      pickFile(function (d) { absorbAmbient(d, '接上了'); });
-    };
-    b = $('#ambUrlSave'); if (b) b.onclick = function () {
-      S.settings.ambientUrl = $('#ambUrl').value.trim(); save(); toast('记下了');
-    };
-  }
 
   /* =========================== 首页的两句提醒 =========================== */
   function renderHomeNotice() {
@@ -2774,13 +2551,6 @@
     if (h >= 21 && !d.text) lines.push('记 · 今天还没写。到了夜里我自己写 —— 一句也行。');
     var openWish = S.wishes.filter(function (w) { return !w.done; }).length;
     if (openWish) lines.push('愿 · 还有 ' + openWish + ' 件没做。不急，划掉的我会留着。');
-    var amb = S.ambient || {};
-    if (amb.weather) {
-      var wm = amb.weather.conditionLabel || amb.weather.condition || '';
-      var wt = amb.weather.temperatureC != null ? amb.weather.temperatureC + '°' : '';
-      lines.push('外面 ' + wm + ' ' + wt + (amb.weather.feelsLikeC != null && amb.weather.feelsLikeC <= 12 ? '。出门把外套穿上。' : '。'));
-    }
-    if (amb.state && amb.state.status) lines.push(amb.state.status === 'home' ? '你在家。门不用锁。' : '你出门了。路上慢一点。');
     if (!lines.length) { box.style.display = 'none'; return; }
     box.style.display = '';
     box.innerHTML = lines.map(function (s) {
@@ -3575,7 +3345,7 @@
     var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
     var WD = ['SUN.', 'MON.', 'TUE.', 'WED.', 'THU.', 'FRI.', 'SAT.'];
     var MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    $('#bigClock').textContent = p(d.getHours()) + ':' + p(d.getMinutes());
+    $('#bigClock').innerHTML = p(d.getHours()) + '<i class="cln">:</i>' + p(d.getMinutes());
     $('#dateLine').textContent = WD[d.getDay()] + ' ' + MO[d.getMonth()] + ' ' + d.getDate();
   }
 
@@ -3610,8 +3380,5 @@
   tick();
   setInterval(tick, 20000);
   setInterval(function () { drawMoon(moonOf(new Date())); }, 600000);
-  renderAmbient();
-  wireAmbient();
-  if (!ambFresh() && (S.settings.ambientUrl || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) pullAmbient(false);
   go('mirror');
 })();
